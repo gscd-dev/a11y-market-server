@@ -1,0 +1,13 @@
+package com.multicampus.lc.gamesungcoding.a11ymarketserver;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class A11ymarketServerApplicationTests {
+
+    @Test
+    void contextLoads() {
+    }
+
+}
