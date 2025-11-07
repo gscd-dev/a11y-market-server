@@ -8,7 +8,7 @@ import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 @Entity
 @Getter
@@ -42,13 +42,13 @@ public class User {
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Date createdAt;
 
     @LastModifiedDate
     @Column(nullable = false)
-    private LocalDateTime updatedAt;
+    private Date updatedAt;
 
-    // 회원 정보 수정 메소드
+    // 회원 정보 수정
     public void updateUserInfo(String userName, String userEmail, String userPhone, String userNickname) {
         if (userName != null) {
             this.userName = userName;

@@ -9,18 +9,18 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/v1/users")
+@RequestMapping("/api")
 public class UserController {
     private final UserService userService;
-
-    @GetMapping("/me")
+    
+    @GetMapping("/v1/users/me")
     public ResponseEntity<UserDTO> getUserInfo(HttpSession session) {
         String userId = (String) session.getAttribute("userId");
         UserDTO userDTO = userService.getUserInfo(userId);
         return ResponseEntity.ok(userDTO);
     }
 
-    @PatchMapping("/me")
+    @PatchMapping("/v1/users/me")
     public ResponseEntity<UserDTO> updateUserInfo(
             HttpSession session,
             @RequestBody UserDTO userDTO) {

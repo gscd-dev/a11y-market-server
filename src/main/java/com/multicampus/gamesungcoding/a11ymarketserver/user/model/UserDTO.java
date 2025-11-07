@@ -2,7 +2,7 @@ package com.multicampus.gamesungcoding.a11ymarketserver.user.model;
 
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 @Getter
 @Setter
@@ -17,8 +17,8 @@ public class UserDTO {
     private String userPhone;
     private String userNickname;
     private String userRole;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Date createdAt;
+    private Date updatedAt;
 
     public static UserDTO fromEntity(User user) {
         return UserDTO.builder()
