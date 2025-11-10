@@ -1,37 +1,52 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.auth.controller;
 
+import com.multicampus.gamesungcoding.a11ymarketserver.auth.dto.LoginDTO;
+import com.multicampus.gamesungcoding.a11ymarketserver.auth.dto.UserRespDTO;
 import com.multicampus.gamesungcoding.a11ymarketserver.auth.service.AuthService;
 import com.multicampus.gamesungcoding.a11ymarketserver.user.model.User;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+import java.util.Map;
+
+@RestController
 public class AuthController {
 
     @Autowired
     private AuthService authService;
 
-    @PostMapping("/v1/auth/login")
-    @ResponseBody
-    public String login(@RequestParam String email,
-                        @RequestParam String password,
-                        HttpSession session) {
-
-        User user = authService.login(email, password);
-
+    @PostMapping("/api/v1/auth/login")
+    public ResponseEntity<Object> login(@RequestBody LoginDTO dto, HttpSession session) {
+        User user = authService.login(dto);
+        //로그인 성공
         if (user != null) {
             session.setAttribute("loginUser", user);
-            return "로그인 성공: " + user.getUserName();
+            Map<String, Object> respBody = Map.of(
+                    "msg", "로그인 성공",
+                    "user", UserRespDTO.builder()
+                            .userId(user.getUserId())
+                            .userName(user.getUserName())
+                            .userEmail(user.getUserEmail())
+                            .userNickname(user.getUserNickname())
+                            .userRole(user.getUserRole())
+                            .build()
+            );
+            return ResponseEntity.ok(respBody); //200 ok와 JSON 반환
         } else {
-            return "로그인 실패: 이메일 또는 비밀번호가 올바르지 않습니다.";
+            Map<String, String> errBody = Map.of(
+                    "msg", "이메일 또는 비밀번호가 올바르지 않습니다."
+            );
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errBody);
         }
     }
 
-    @PostMapping("/v1/auth/logout")
+    @PostMapping("/api/v1/auth/logout")
     @ResponseBody
     public String logout(HttpSession session) {
         session.invalidate(); //세션 무효화
