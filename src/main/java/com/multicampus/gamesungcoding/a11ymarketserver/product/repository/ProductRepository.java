@@ -22,14 +22,7 @@ public interface ProductRepository extends JpaRepository<Product, String> {
     @Query(value = """
             SELECT p.*
             FROM products p
-            /*
-               [TODO] SELLER DB와 JOIN 예정
-               예시)
-               JOIN seller s ON s.seller_id = p.seller_id
-               AND (:certified IS NULL OR s.accessibility_certified = CASE WHEN :certified THEN 1 ELSE 0 END)
-               AND (:grade IS NULL OR s.grade = :grade)
-            */
-            WHERE (:search IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')))
+            WHERE (:search IS NULL OR LOWER(p.name) LIKE LOWER('%' || :search || '%'))
             """, nativeQuery = true)
     List<Product> findFilteredProducts(
             @Param("search") String search,
