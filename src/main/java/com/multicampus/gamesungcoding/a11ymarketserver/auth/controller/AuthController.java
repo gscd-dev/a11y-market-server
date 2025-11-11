@@ -1,5 +1,6 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.auth.controller;
 
+import com.multicampus.gamesungcoding.a11ymarketserver.auth.dto.JoinRequestDTO;
 import com.multicampus.gamesungcoding.a11ymarketserver.auth.dto.LoginDTO;
 import com.multicampus.gamesungcoding.a11ymarketserver.auth.dto.UserRespDTO;
 import com.multicampus.gamesungcoding.a11ymarketserver.auth.service.AuthService;
@@ -50,6 +51,34 @@ public class AuthController {
     public String logout(HttpSession session) {
         session.invalidate(); // 세션 무효화
         return "로그아웃 성공";
+    }
+
+    @PostMapping("/api/v1/auth/join")
+    public ResponseEntity<Object> join(@RequestBody JoinRequestDTO dto) {
+
+        Users savedUser = authService.join(dto);
+
+        // 이메일 중복 시
+        if (savedUser == null) {
+            Map<String, String> errBody = Map.of(
+                    "msg", "이미 존재하는 이메일입니다."
+            );
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errBody);
+        }
+
+        // 회원가입 성공 시
+        Map<String, Object> respBody = Map.of(
+                "msg", "회원가입 성공",
+                "user", UserRespDTO.builder()
+                        .userId(savedUser.getUserId())
+                        .userName(savedUser.getUserName())
+                        .userEmail(savedUser.getUserEmail())
+                        .userNickname(savedUser.getUserNickname())
+                        .userRole(savedUser.getUserRole())
+                        .build()
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(respBody);
     }
 
 
