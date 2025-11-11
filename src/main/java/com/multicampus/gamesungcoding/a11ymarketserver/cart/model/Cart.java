@@ -1,10 +1,9 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.cart.model;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "cart_items")
@@ -17,30 +16,40 @@ public class Cart {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;                 // 장바구니 아이템 PK
+    private UUID cartItemId;                 // 장바구니 아이템 PK
 
     @Column(nullable = false)
-    private Long memberId;           // 사용자/회원 ID
+    private UUID cartId;
 
     @Column(nullable = false)
-    private Long productId;          // 상품 ID
-
-    @Column(nullable = false, length = 100)
-    private String productName;      // 상품명
+    private UUID userId;           // 사용자/회원 ID
 
     @Column(nullable = false)
-    private Integer price;           // 단가(원)
+    private UUID productId;          // 상품 ID
 
     @Column(nullable = false)
     private Integer quantity;        // 수량
 
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt; // 담은 시각
-
-    @PrePersist
-    public void onCreate() {
-        if (createdAt == null) {
-            createdAt = LocalDateTime.now();
+    public void changeQuantity(int quantity) {
+        if (quantity < 1) {
+            throw new IllegalArgumentException("quantity must be >= 1");
         }
+        this.quantity = quantity;
+    }
+
+    /** 장바구니 수량을 누적 증가 (양수만 허용) */
+    public void increaseQuantity(int delta) {
+        if (delta < 1) {
+            throw new IllegalArgumentException("delta must be >= 1");
+        }
+        this.quantity += delta;
+    }
+    public CartDTO toDto() { // [ADDED]
+        return CartDTO.builder()
+                .cartItemId(this.getCartItemId())
+                .cartId(this.getCartId())
+                .productId(this.getProductId())
+                .quantity(this.getQuantity())
+                .build();
     }
 }

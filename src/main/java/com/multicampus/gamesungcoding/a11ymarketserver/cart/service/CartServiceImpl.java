@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,59 +22,50 @@ public class CartServiceImpl implements CartService {
     private final CartRepository cartRepository;
 
     @Override
-    public List<CartDTO> getCartItems(Long memberId) {
-        return cartRepository.findByMemberId(memberId).stream()
-                .map(CartDTO::from)
+    public List<CartDTO> getCartItems(UUID userId) {
+        return cartRepository.findByUserId(userId).stream()
+                .map(Cart::toDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public int getCartTotal(Long memberId) {
-        return cartRepository.findByMemberId(memberId).stream()
-                .mapToInt(c -> c.getPrice() * c.getQuantity())
-                .sum();
+    public int getCartTotal(UUID userId) {
+        // 현재 cart_items에 price가 없으므로 총액은 이 단계에서 계산 불가.
+        // TODO: product 가격 조인 후 합산 (ex. productRepository로 가격 조회해서 계산)
+        return 0;
     }
 
     @Override
     @Transactional
     public CartDTO addItem(CartAddRequest req) {
-        // 같은 회원이 같은 상품을 담으면 수량만 증가
-        Cart cart = cartRepository.findByMemberIdAndProductId(req.getMemberId(), req.getProductId())
+        Cart cart = cartRepository.findByUserIdAndProductId(req.getUserId(), req.getProductId())
                 .map(existing -> {
-                    existing.setQuantity(existing.getQuantity() + req.getQuantity());
-                    // 가격 변경 정책은 팀 룰에 맞춰 조정 가능.
+                    existing.increaseQuantity(req.getQuantity());
                     return existing;
                 })
                 .orElseGet(() -> Cart.builder()
-                        .memberId(req.getMemberId())
+                        .userId(req.getUserId())
                         .productId(req.getProductId())
-                        .productName(req.getProductName())
-                        .price(req.getPrice())
                         .quantity(req.getQuantity())
                         .build()
                 );
-
-        Cart saved = cartRepository.save(cart);
-        return CartDTO.from(saved);
+        return cartRepository.save(cart).toDto();
     }
 
     @Override
     @Transactional
-    public CartDTO updateQuantity(Long cartItemId, int quantity) {
-        if (quantity < 1) throw new IllegalArgumentException("quantity must be >= 1");
+    public CartDTO updateQuantity(UUID cartItemId, int quantity) {
 
         Cart cart = cartRepository.findById(cartItemId)
                 .orElseThrow(() -> new NoSuchElementException("Cart item not found: " + cartItemId));
 
-        cart.setQuantity(quantity);
-        return CartDTO.from(cart); // dirty checking으로 flush됨
+        cart.changeQuantity(quantity);
+        return cart.toDto();
     }
 
     @Override
     @Transactional
-    public int deleteItems(List<Long> itemIds) {
-        if (itemIds == null || itemIds.isEmpty()) return 0;
+    public void deleteItems(List<UUID> itemIds) {
         cartRepository.deleteAllByIdInBatch(itemIds);
-        return itemIds.size();
     }
 }
