@@ -50,7 +50,7 @@ public class AuthController {
     @PostMapping("/auth/join")
     public ResponseEntity<?> join(@RequestBody @Valid JoinRequestDTO dto) {
 
-        Users savedUser = authService.join(dto);
+        var savedUser = authService.join(dto);
 
         // 이메일 중복 시
         if (savedUser == null) {
@@ -59,22 +59,13 @@ public class AuthController {
                     .build();
 
             return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
-
-
         }
 
         // 회원가입 성공 시
         JoinResponseDTO resp = JoinResponseDTO.builder()
                 .msg("회원가입 성공")
-                .user(
-                        UserRespDTO.builder()
-                                .userId(savedUser.getUserId())
-                                .userName(savedUser.getUserName())
-                                .userEmail(savedUser.getUserEmail())
-                                .userNickname(savedUser.getUserNickname())
-                                .userRole(savedUser.getUserRole())
-                                .build()
-                ).build();
+                .user(savedUser)
+                .build();
 
         return ResponseEntity.status(HttpStatus.CREATED).body(resp);
     }
