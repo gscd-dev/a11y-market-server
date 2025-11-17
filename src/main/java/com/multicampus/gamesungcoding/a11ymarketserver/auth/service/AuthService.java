@@ -1,14 +1,16 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.auth.service;
 
-import com.multicampus.gamesungcoding.a11ymarketserver.auth.dto.JoinRequestDTO;
-import com.multicampus.gamesungcoding.a11ymarketserver.auth.dto.LoginDTO;
-import com.multicampus.gamesungcoding.a11ymarketserver.auth.dto.UserRespDTO;
+import com.multicampus.gamesungcoding.a11ymarketserver.auth.dto.*;
 import com.multicampus.gamesungcoding.a11ymarketserver.user.model.Users;
 import com.multicampus.gamesungcoding.a11ymarketserver.user.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
 @Service
@@ -59,6 +61,66 @@ public class AuthService {
 
         // 저장 후 반환
         return UserRespDTO.fromEntity(userRepository.save(user));
+    }
+
+    //토큰 생성 메소드
+    private String generateResetToken() {
+        return String.valueOf(ThreadLocalRandom.current().nextInt(100000, 1_000_000));
+    }
+
+    // 비밀번호 재설정 요청
+    @Transactional
+    public boolean requestResetPwd(PwdResetReqDTO dto) {
+        // 이메일 + 아이디로 찾기
+        Users user = userRepository.findByUserEmail(dto.getEmail())
+                .orElse(null);
+
+        if (user == null) return false;
+        if (!user.getUserId().equals(dto.getUserId())) return false;
+
+        // 토큰 생성 (만료 시간 : 10분 뒤)
+        String token = generateResetToken();
+        LocalDateTime expireAt = LocalDateTime.now().plusMinutes(10);
+
+        user.setResetToken(token);
+        user.setResetTokenExpireAt(expireAt);
+
+        return true;
+
+    }
+
+    // 비밀번호 재설정 확인
+    @Transactional
+    public boolean confirmResetPwd(PwdResetConfirmDTO dto) {
+        Users user = userRepository.findByUserEmail(dto.getEmail())
+                .orElse(null);
+
+        if (user == null) return false;
+
+        if (!user.getUserId().equals(dto.getUserId())) {
+            return false;
+        }
+
+        if (user.getResetToken() == null) return false;
+
+        if (!user.getResetToken().equals(dto.getResetToken())) {
+            return false;
+        }
+
+        if (user.getResetTokenExpireAt() == null ||
+                user.getResetTokenExpireAt().isBefore(LocalDateTime.now())) {
+            return false;
+        }
+
+        // 비밀번호 암호화 후 저장
+        String encodedPwd = passwordEncoder.encode(dto.getNewPassword());
+        user.updatePassword(encodedPwd);
+
+        //토큰 소멸
+        user.setResetToken(null);
+        user.setResetTokenExpireAt(null);
+
+        return true;
     }
 
 }

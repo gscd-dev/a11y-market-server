@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
@@ -60,5 +62,32 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(resp);
     }
 
+    @PostMapping("/auth/password/request-reset")
+    public ResponseEntity<Object> requestResetPwd(@RequestBody @Valid PwdResetReqDTO dto) {
+        boolean ok = authService.requestResetPwd(dto);
+
+        if (!ok) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("msg", "사용자 정보가 일치하지 않습니다."));
+        }
+
+        return ResponseEntity.ok(
+                Map.of("msg", "비밀번호 재설정 요청 완료. 이메일을 확인해주세요.")
+        );
+    }
+
+    @PostMapping("/auth/password/request-confirm")
+    public ResponseEntity<Object> confirmResetPwd(@RequestBody @Valid PwdResetConfirmDTO dto) {
+        boolean ok = authService.confirmResetPwd(dto);
+
+        if (!ok) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("msg", "토큰이 유효하지 않거나 만료되었습니다."));
+        }
+
+        return ResponseEntity.ok(
+                Map.of("msg", "비밀번호가 성공적으로 변경되었습니다.")
+        );
+    }
 }
 

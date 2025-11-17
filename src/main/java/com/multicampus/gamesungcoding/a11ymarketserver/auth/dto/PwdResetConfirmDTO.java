@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class PwdResetConfirmDTO {
+public class PwdResetConfirmDTO { // rebase 과정에서 누락된 비밀번호 재설정 DTO 복구
 
     @NotBlank(message = "사용자 ID는 필수입니다.")
     private UUID userId;

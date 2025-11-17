@@ -48,6 +48,13 @@ public class Users {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+
+    /*
+    db에 다음 두 줄을 추가했습니다.
+    ALTER TABLE USERS ADD reset_token VARCHAR2(20);
+    ALTER TABLE USERS ADD reset_token_expire_at TIMESTAMP;
+     */
+
     //비밀번호 재설정 관련
     @Column(length = 20)
     @Setter
