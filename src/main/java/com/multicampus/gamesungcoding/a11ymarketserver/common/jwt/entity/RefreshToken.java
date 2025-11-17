@@ -9,7 +9,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -30,15 +30,15 @@ public class RefreshToken {
     private String token;
 
     @Column(nullable = false)
-    private Instant expiryDate;
+    private LocalDateTime expiryDate;
 
-    public RefreshToken(UUID userId, String token, Instant expiryDate) {
+    public RefreshToken(UUID userId, String token, LocalDateTime expiryDate) {
         this.userId = userId;
         this.token = token;
         this.expiryDate = expiryDate;
     }
 
-    public void updateToken(String token, Instant expiryDate) {
+    public void updateToken(String token, LocalDateTime expiryDate) {
         this.token = token;
         this.expiryDate = expiryDate;
     }

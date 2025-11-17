@@ -9,7 +9,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Component
@@ -37,7 +37,7 @@ public class RefreshTokenService {
         var existingTokenOpt = refreshTokenRepository.findByUserId(userId);
         var newToken = UUID.randomUUID().toString();
 
-        var expiryDate = Instant.now().plusMillis(refreshTokenValidityMs);
+        var expiryDate = LocalDateTime.now().plusSeconds(refreshTokenValidityMs / 1000);
 
         if (existingTokenOpt.isPresent()) {
             var existingToken = existingTokenOpt.get();
@@ -59,7 +59,7 @@ public class RefreshTokenService {
         var refreshToken = refreshTokenRepository.findByToken(token)
                 .orElseThrow(() -> new DataNotFoundException("Refresh token not found: " + token));
 
-        if (refreshToken.getExpiryDate().isBefore(Instant.now())) {
+        if (refreshToken.getExpiryDate().isBefore(LocalDateTime.now())) {
             refreshTokenRepository.delete(refreshToken);
             throw new DataNotFoundException("Refresh token has expired: " + token);
         } else {
