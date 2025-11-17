@@ -2,6 +2,7 @@ package com.multicampus.gamesungcoding.a11ymarketserver.feature.auth.service;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataNotFoundException;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.jwt.dto.JwtResponse;
+import com.multicampus.gamesungcoding.a11ymarketserver.common.jwt.provider.JwtTokenProvider;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.jwt.service.RefreshTokenService;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.auth.dto.JoinRequestDTO;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.auth.dto.LoginDTO;
@@ -24,6 +25,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
     private final UserDetailsService userDetailsService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     public UserRespDTO login(LoginDTO dto) {
         String email = dto.getEmail();
@@ -60,7 +62,7 @@ public class AuthService {
                 userDetails.getAuthorities()
         );
 
-        String newAccessToken = refreshTokenService.createRefreshToken(newAuthentication);
+        String newAccessToken = jwtTokenProvider.createAccessToken(newAuthentication);
         return JwtResponse.builder()
                 .accessToken(newAccessToken)
                 .refreshToken(refreshToken)
@@ -91,4 +93,9 @@ public class AuthService {
         return UserRespDTO.fromEntity(userRepository.save(user));
     }
 
+    public void logout(String userEmail) {
+        userRepository.findByUserEmail(userEmail)
+                .orElseThrow(() -> new DataNotFoundException("User not found for email: " + userEmail));
+        refreshTokenService.deleteRefreshToken(userEmail);
+    }
 }
