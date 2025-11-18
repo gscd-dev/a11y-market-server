@@ -6,14 +6,15 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.address.model.Def
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.address.service.AddressService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
+import java.util.UUID;
 
 @Validated
 @RestController
@@ -27,19 +28,24 @@ public class AddressController {
     @GetMapping("/v1/users/me/address")
     public ResponseEntity<List<AddressResponse>> getAddressList(
             @AuthenticationPrincipal Authentication authentication) {
-        // UUID userId = UUID.fromString(uuid);
-        List<AddressResponse> addresses = addressService.getAddressList(authentication.getName());
-        return ResponseEntity.ok(addresses);
+
+        return ResponseEntity.ok(
+                addressService.getAddressList(authentication.getName())
+        );
     }
 
     // 배송지 등록
     @PostMapping("/v1/users/me/address")
-    public ResponseEntity<AddressResponse> insertAddress(
+    public ResponseEntity<URI> insertAddress(
             @AuthenticationPrincipal Authentication authentication,
             @Valid @RequestBody AddressRequest request) {
 
         AddressResponse response = addressService.insertAddress(authentication.getName(), request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        String uri = "/api/v1/users/me/address/" + response.addressId();
+
+        return ResponseEntity
+                .created(URI.create(uri))
+                .build();
     }
 
     // 배송지 정보 수정
@@ -49,9 +55,9 @@ public class AddressController {
             @PathVariable String addressId,
             @Valid @RequestBody AddressRequest request) {
 
-        AddressResponse response =
-                addressService.updateAddress(authentication.getName(), addressId, request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(
+                addressService.updateAddress(authentication.getName(), addressId, request)
+        );
     }
 
     // 배송지 삭제
@@ -68,9 +74,10 @@ public class AddressController {
     @GetMapping("/v1/users/me/default-address")
     public ResponseEntity<AddressResponse> getDefaultAddress(
             @AuthenticationPrincipal Authentication authentication) {
-        // 기본 배송지가 없을 때 204 반환
-        var address = addressService.getDefaultAddress(authentication.getName());
-        return ResponseEntity.ok(address);
+
+        return ResponseEntity.ok(
+                addressService.getDefaultAddress(authentication.getName())
+        );
     }
 
     // 기본 배송지 변경
@@ -79,7 +86,10 @@ public class AddressController {
             @AuthenticationPrincipal Authentication authentication,
             @Valid @RequestBody DefaultAddressRequest request) {
 
-        addressService.setDefaultAddress(authentication.getName(), request);
+        addressService.setDefaultAddress(
+                authentication.getName(),
+                UUID.fromString(request.addressId()));
+
         return ResponseEntity.ok("SUCCESS");
     }
 
