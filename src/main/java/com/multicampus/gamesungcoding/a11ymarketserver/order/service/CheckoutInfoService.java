@@ -62,13 +62,14 @@ public class CheckoutInfoService {
             Product p = productRepository.findById(item.getProductId())
                     .orElseThrow(() -> new IllegalStateException("상품 정보를 찾을 수 없습니다."));
 
-            long subtotal = (long) p.getProductPrice() * item.getQuantity();
+            Integer qty = item.getQuantity();
+            Long subtotal = p.getProductPrice().longValue() * qty;
             totalAmount += subtotal;
 
             itemDTOs.add(new CartItemDTO(
                     p.getProductId(),
                     p.getProductName(),
-                    p.getProductPrice(),
+                    p.getProductPrice().longValue(),
                     item.getQuantity(),
                     subtotal
             ));

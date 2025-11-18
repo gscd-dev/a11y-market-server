@@ -14,7 +14,7 @@ import java.util.UUID;
 public class CartItemDTO {
     private UUID productID;
     private String productName;
-    private long price; //현재 가격
-    private int quantity;
-    private long subtotal; //price * quantity
+    private Long price; //현재 가격
+    private Integer quantity;
+    private Long subtotal; //price * quantity
 }
