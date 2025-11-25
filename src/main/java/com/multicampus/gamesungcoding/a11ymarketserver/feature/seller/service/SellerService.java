@@ -307,4 +307,23 @@ public class SellerService {
 
         orderItemsRepository.save(orderItem);
     }
+
+    @Transactional(readOnly = true)
+    public List<SellerOrderItemResponse> getOrderClaims(String userEmail) {
+
+        Seller seller = sellerRepository.findByUserEmail(userEmail)
+                .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
+
+        if (!SellerSubmitStatus.APPROVED.getStatus().equals(seller.getSellerSubmitStatus())) {
+            throw new InvalidRequestException("승인된 판매자만 취소/반품/교환 목록을 조회할 수 있습니다.");
+        }
+
+        List<OrderItemStatus> claimStatuses = List.of(
+                OrderItemStatus.CANCEL_PENDING,
+                OrderItemStatus.RETURN_PENDING
+        );
+
+        return orderItemsRepository.findSellerClaims(userEmail, claimStatuses);
+    }
+
 }

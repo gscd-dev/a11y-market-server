@@ -109,4 +109,12 @@ public class SellerController {
         sellerService.processOrderClaim(userDetails.getUsername(), UUID.fromString(claimId), request);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/v1/seller/claims")
+    public ResponseEntity<List<SellerOrderItemResponse>> getOrderClaims(
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        List<SellerOrderItemResponse> claims = sellerService.getOrderClaims(userDetails.getUsername());
+        return ResponseEntity.ok(claims);
+    }
 }
