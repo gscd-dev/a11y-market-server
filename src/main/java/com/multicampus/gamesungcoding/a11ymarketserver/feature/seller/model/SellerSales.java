@@ -4,49 +4,31 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
 @Entity
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "SELLER_SALES_VIEW")
 public class SellerSales {
 
     @Id
-    @Column(name = "SELLER_ID", nullable = false, length = 16)
+    @Column(nullable = false, length = 16)
     private UUID sellerId;
 
-    @Column(name = "TOTAL_SALES")
+    @Column
     private Integer totalSales;
 
-    @Column(name = "TOTAL_ORDERS")
+    @Column
     private Integer totalOrders;
 
-    @Column(name = "TOTAL_PRODUCTS_SOLD")
+    @Column
     private Integer totalProductsSold;
 
-    @Column(name = "TOTAL_CANCELLED")
+    @Column
     private Integer totalCancelled;
-
-    protected SellerSales() {
-    }
-
-    public UUID getSellerId() {
-        return sellerId;
-    }
-
-    public Integer getTotalSales() {
-        return totalSales;
-    }
-
-    public Integer getTotalOrders() {
-        return totalOrders;
-    }
-
-    public Integer getTotalProductsSold() {
-        return totalProductsSold;
-    }
-
-    public Integer getTotalCancelled() {
-        return totalCancelled;
-    }
 }
