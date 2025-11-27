@@ -146,52 +146,6 @@ public class OrderService {
         return OrderResponse.fromEntity(ordersRepository.save(order));
     }
 
-    private List<CartItems> getCartItemsByIds(String userEmail, List<String> orderItemIds) {
-        List<UUID> itemUuids = orderItemIds.stream()
-                .map(UUID::fromString)
-                .toList();
-
-        List<CartItems> cartItems = cartItemRepository.findAllById(itemUuids);
-        if (cartItems.size() != itemUuids.size()) {
-            log.debug("Requested IDs: {}, Found IDs: {}",
-                    itemUuids,
-                    cartItems.stream()
-                            .map(CartItems::getCartItemId)
-                            .toList()
-            );
-            throw new InvalidRequestException("일부 장바구니 상품을 찾을 수 없습니다.");
-        }
-
-        var cartList = cartRepository.findAllById(
-                // CartItemId로 각 Item를 추가한 Cart 조회
-                cartItems.stream()
-                        .map(CartItems::getCartId)
-                        .toList()
-        );
-
-        // 소유자 검증
-        var emailList =
-                // Id
-                userRepository.findAllById(
-                                cartList.stream()
-                                        .map(Cart::getUserId)
-                                        .toList()
-                        )
-                        .stream()
-                        // userEmail 추출
-                        .map(Users::getUserEmail)
-                        // 중복 제거
-                        .distinct()
-                        .toList();
-
-        // 소유자가 요청자와 일치하는지 확인
-        if (!(emailList.size() == 1 && emailList.getFirst().equals(userEmail))) {
-            throw new InvalidRequestException("장바구니 아이템의 소유자와 요청자가 일치하지 않습니다.");
-        }
-
-        return cartItems;
-    }
-
     // 내 주문 목록 조회
     @Transactional(readOnly = true)
     public List<OrderDetailResponse> getMyOrders(String userEmail) {
@@ -337,5 +291,57 @@ public class OrderService {
         order.updateOrderStatus(OrderStatus.PAID);
 
         return PaymentVerifyResponse.success(order.getOrderId(), expectedAmount);
+    }
+
+    private List<CartItems> getCartItemsByIds(String userEmail, List<String> orderItemIds) {
+        List<UUID> itemUuids;
+
+        try {
+            itemUuids = orderItemIds.stream()
+                    .map(UUID::fromString)
+                    .toList();
+        } catch (IllegalArgumentException e) {
+            throw new InvalidRequestException("유효하지 않은 장바구니 아이템 ID가 포함되어 있습니다.");
+        }
+
+        List<CartItems> cartItems = cartItemRepository.findAllById(itemUuids);
+        if (cartItems.size() != itemUuids.size()) {
+            log.debug("Requested IDs: {}, Found IDs: {}",
+                    itemUuids,
+                    cartItems.stream()
+                            .map(CartItems::getCartItemId)
+                            .toList()
+            );
+            throw new InvalidRequestException("일부 장바구니 상품을 찾을 수 없습니다.");
+        }
+
+        var cartList = cartRepository.findAllById(
+                // CartItemId로 각 Item를 추가한 Cart 조회
+                cartItems.stream()
+                        .map(CartItems::getCartId)
+                        .toList()
+        );
+
+        // 소유자 검증
+        var emailList =
+                // Id
+                userRepository.findAllById(
+                                cartList.stream()
+                                        .map(Cart::getUserId)
+                                        .toList()
+                        )
+                        .stream()
+                        // userEmail 추출
+                        .map(Users::getUserEmail)
+                        // 중복 제거
+                        .distinct()
+                        .toList();
+
+        // 소유자가 요청자와 일치하는지 확인
+        if (!(emailList.size() == 1 && emailList.getFirst().equals(userEmail))) {
+            throw new InvalidRequestException("장바구니 아이템의 소유자와 요청자가 일치하지 않습니다.");
+        }
+
+        return cartItems;
     }
 }
