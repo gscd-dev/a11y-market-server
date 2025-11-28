@@ -17,8 +17,15 @@ spring:
   open-in-view: false
   # AI model configuration
   ai:
-    model:
-      chat: none # disable AI features because not implemented yet
+    vertex:
+      ai:
+        gemini:
+          project-id: your-project-id
+          location: your-location(e.g., asia-northeast3)
+          chat:
+            options:
+              model: gemini-2.5-flash
+
 
 # Server configuration
 server:
