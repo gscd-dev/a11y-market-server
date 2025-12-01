@@ -13,7 +13,7 @@ public record AddressResponse(UUID addressId, UUID userId, String addressName,
     public static AddressResponse fromEntity(Addresses address) {
         return new AddressResponse(
                 address.getAddressId(),
-                address.getUserId(),
+                address.getUser().getUserId(),
                 address.getAddress().getAddressName(),
                 address.getAddress().getReceiverName(),
                 address.getAddress().getReceiverPhone(),

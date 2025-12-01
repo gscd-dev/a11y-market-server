@@ -1,8 +1,12 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.entity;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.common.id.UuidV7;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.Product;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -18,21 +22,23 @@ public class CartItems {
     @Column(length = 16, updatable = false, nullable = false)
     private UUID cartItemId;                 // 장바구니 아이템 PK
 
-    @Column(nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cart_id", updatable = false, nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private UUID cartId;
+    private Cart cart;
 
-    @Column(nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", updatable = false, nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private UUID productId;
+    private Product product;
 
     @Column(nullable = false)
     private int quantity;
 
     @Builder
-    private CartItems(UUID cartId, UUID productId, int quantity) {
-        this.cartId = cartId;
-        this.productId = productId;
+    private CartItems(Cart cart, Product product, int quantity) {
+        this.cart = cart;
+        this.product = product;
         this.quantity = quantity;
     }
 

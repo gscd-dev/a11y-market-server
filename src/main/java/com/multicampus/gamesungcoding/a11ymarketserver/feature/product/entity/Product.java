@@ -1,6 +1,7 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.common.id.UuidV7;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.entity.Seller;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -43,15 +44,17 @@ public class Product {
     /**
      * FK: 판매자
      */
-    @Column(name = "seller_id", length = 16)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seller_id", nullable = false, updatable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private UUID sellerId;
+    private Seller seller;
 
     /**
      * FK: 카테고리
      */
-    @Column(name = "category_id", length = 16)
-    private UUID categoryId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Categories category;
 
     /**
      * 가격 (NULL 허용 → Integer)
@@ -130,13 +133,13 @@ public class Product {
      * - 수정 시 관리자가 다시 검토해야 하므로 상태를 PENDING 으로 되돌림
      */
     public void updateBySeller(
-            UUID categoryId,
+            Categories category,
             String productName,
             String productDescription,
             Integer productPrice,
-            Integer productStock
-    ) {
-        this.categoryId = categoryId;
+            Integer productStock) {
+        
+        this.category = category;
         this.productName = productName;
         this.productDescription = productDescription;
         this.productPrice = productPrice;

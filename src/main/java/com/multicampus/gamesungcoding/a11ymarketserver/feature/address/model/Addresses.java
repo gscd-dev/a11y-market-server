@@ -1,6 +1,7 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.address.model;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.common.id.UuidV7;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity.Users;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -24,9 +25,10 @@ public class Addresses {
     @Column(length = 16, updatable = false, nullable = false)
     private UUID addressId;
 
-    @Column(length = 16, updatable = false, nullable = false)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", updatable = false, nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private UUID userId;
+    private Users user;
 
     @Embedded
     private AddressInfo address;
@@ -36,8 +38,8 @@ public class Addresses {
     private LocalDateTime createdAt;
 
     @Builder
-    private Addresses(UUID userId, AddressInfo addressInfo) {
-        this.userId = userId;
+    private Addresses(Users user, AddressInfo addressInfo) {
+        this.user = user;
         this.address = addressInfo;
     }
 

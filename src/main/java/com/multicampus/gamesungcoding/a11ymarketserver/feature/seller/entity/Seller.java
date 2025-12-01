@@ -1,6 +1,7 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.entity;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.common.id.UuidV7;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity.Users;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,9 +30,10 @@ public class Seller {
     @Column(nullable = false, updatable = false, length = 16)
     private UUID sellerId;
 
-    @Column(nullable = false, length = 16)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private UUID userId;
+    private Users user;
 
     @Column(nullable = false)
     private String sellerName;
@@ -39,8 +41,9 @@ public class Seller {
     @Column(nullable = false)
     private String businessNumber;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
-    private String sellerGrade;
+    private SellerGrades sellerGrade;
 
     @Column(length = 1024)
     private String sellerIntro;
@@ -48,8 +51,9 @@ public class Seller {
     @Column(name = "is_A11y_Guarantee", nullable = false)
     private Boolean a11yGuarantee;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String sellerSubmitStatus;
+    private SellerSubmitStatus sellerSubmitStatus;
 
     @CreatedDate
     @Column(updatable = false)
@@ -61,20 +65,21 @@ public class Seller {
     private LocalDateTime updatedAt;
 
     public void approve() {
-        this.sellerSubmitStatus = SellerSubmitStatus.APPROVED.getStatus();
+        this.sellerSubmitStatus = SellerSubmitStatus.APPROVED;
         this.approvedDate = LocalDateTime.now();
     }
 
     public void reject() {
-        this.sellerSubmitStatus = SellerSubmitStatus.REJECTED.getStatus();
+        this.sellerSubmitStatus = SellerSubmitStatus.REJECTED;
         this.approvedDate = LocalDateTime.now();
     }
 
     public void updateAdminSellerInfo(String sellerName,
                                       String businessNumber,
                                       String sellerIntro,
-                                      String sellerGrade,
+                                      SellerGrades sellerGrade,
                                       Boolean a11yGuarantee) {
+
         if (sellerName != null) this.sellerName = sellerName;
         if (businessNumber != null) this.businessNumber = businessNumber;
         if (sellerIntro != null) this.sellerIntro = sellerIntro;

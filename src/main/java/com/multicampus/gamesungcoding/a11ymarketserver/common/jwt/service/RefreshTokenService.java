@@ -40,7 +40,7 @@ public class RefreshTokenService {
         var newToken = UUID.randomUUID().toString();
         var expiryDate = LocalDateTime.now().plusSeconds(refreshTokenValidityMs / 1000);
 
-        refreshTokenRepository.findByUserId(userId)
+        refreshTokenRepository.findByUser_UserId(userId)
                 .ifPresentOrElse(
                         token -> {
                             log.debug("RefreshTokenService - updateRefreshToken: Updating existing refresh token for userId {}", userId);

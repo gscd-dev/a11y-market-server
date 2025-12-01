@@ -12,17 +12,18 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
 public class ProductAiSummary {
+
     @Id
-    @Column(length = 16, updatable = false, nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", updatable = false, nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private UUID productId;
+    private Product product;
 
     @Lob
     @Column(columnDefinition = "CLOB")
@@ -42,12 +43,11 @@ public class ProductAiSummary {
     private LocalDateTime generatedAt;
 
     @Builder
-    private ProductAiSummary(UUID productId,
+    private ProductAiSummary(Product productId,
                              String summaryText,
                              String usageContext,
                              String usageMethod) {
 
-        this.productId = productId;
         this.summaryText = summaryText;
         this.usageContext = usageContext;
         this.usageMethod = usageMethod;

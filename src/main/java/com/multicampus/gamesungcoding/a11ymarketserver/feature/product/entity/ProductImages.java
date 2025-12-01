@@ -24,9 +24,10 @@ public class ProductImages {
     @Column(length = 16, updatable = false, nullable = false)
     private UUID imageId;
 
-    @Column(length = 16, nullable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", updatable = false, nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    private UUID productId;
+    private Product product;
 
     @Column(length = 2048, nullable = false)
     private String imageUrl;
@@ -42,13 +43,12 @@ public class ProductImages {
     private Integer imageSequence;
 
     @Builder
-    private ProductImages(
-            UUID productId,
-            String imageUrl,
-            String altText,
-            Integer imageSequence) {
+    private ProductImages(Product product,
+                          String imageUrl,
+                          String altText,
+                          Integer imageSequence) {
 
-        this.productId = productId;
+        this.product = product;
         this.imageUrl = imageUrl;
         this.altText = altText;
         this.imageSequence = imageSequence;
