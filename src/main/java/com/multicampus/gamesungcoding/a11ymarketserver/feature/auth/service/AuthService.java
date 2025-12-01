@@ -117,7 +117,8 @@ public class AuthService {
 
     private Users getUserByRefreshToken(String refreshToken) {
         var dbToken = refreshTokenService.verifyRefreshToken(refreshToken);
-        return userRepository.findById(dbToken.getUserId())
-                .orElseThrow(() -> new DataNotFoundException("User not found for ID: " + dbToken.getUserId()));
+        return userRepository.findById(dbToken.getUser().getUserId())
+                .orElseThrow(() ->
+                        new DataNotFoundException("User not found for: " + dbToken.getUser().getUserEmail()));
     }
 }
