@@ -31,7 +31,7 @@ ALTER TABLE products
    ADD CONSTRAINT fk_seller
       FOREIGN KEY ( seller_id )
          REFERENCES sellers ( seller_id )
-            ON DELETE CASCADE;
+            ON DELETE SET NULL;
 
 ALTER TABLE carts DROP CONSTRAINT fk_cart_user;
 ALTER TABLE carts
