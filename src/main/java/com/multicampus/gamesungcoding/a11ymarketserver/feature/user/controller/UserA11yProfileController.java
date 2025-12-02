@@ -39,18 +39,6 @@ public class UserA11yProfileController {
 
     }
 
-    //접근성 프로필 단건 조회
-    @GetMapping("/v1/users/a11y/profiles/{profileId}")
-    public ResponseEntity<UserA11yProfileResponse> getMyProfile(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable UUID profileId
-    ) {
-        String email = userDetails.getUsername();
-        UserA11yProfile profile = profileService.getMyProfile(email, profileId);
-
-        return ResponseEntity.ok(UserA11yProfileResponse.fromEntity(profile));
-    }
-
     //접근성 프로필 생성
     @PostMapping("/v1/users/a11y/profiles")
     public ResponseEntity<UserA11yProfileResponse> createProfile(
