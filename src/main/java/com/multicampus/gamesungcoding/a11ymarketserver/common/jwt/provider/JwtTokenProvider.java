@@ -48,10 +48,11 @@ public class JwtTokenProvider {
 
     public String createTemporaryAccessToken(UUID uuid) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutes
+        Date expiryDate = new Date(now.getTime() + 15 * 60 * 1000); // 15 minutes
 
         return Jwts.builder()
                 .subject(uuid.toString())
+                .claim("auth", UserRole.TEMP)
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(secretKey)
