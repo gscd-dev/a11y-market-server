@@ -3,6 +3,7 @@ package com.multicampus.gamesungcoding.a11ymarketserver.common.config;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.jwt.filter.JwtAuthenticationFilter;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.oauth.OAuth2LoginSuccessHandler;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.properties.CorsProperties;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -80,6 +81,17 @@ public class SecurityConfig {
                         .permitAll()
                         .anyRequest()
                         .authenticated())
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request,
+                                                   response,
+                                                   authException) -> {
+
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \""
+                                    + authException.getMessage() + "\"}");
+                        })
+                )
                 .oauth2Login(oauth2 -> oauth2
                         .successHandler(oAuth2LoginSuccessHandler))
                 .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
