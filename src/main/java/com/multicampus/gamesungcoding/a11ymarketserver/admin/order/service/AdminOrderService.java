@@ -1,6 +1,7 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.admin.order.service;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.admin.order.model.AdminOrderResponse;
+import com.multicampus.gamesungcoding.a11ymarketserver.admin.order.model.AdminOrderSearchRequest;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataNotFoundException;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.dto.OrderDetailResponse;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItemStatus;
@@ -27,10 +28,16 @@ public class AdminOrderService {
     private final OrdersRepository ordersRepository;
     private final OrderItemsRepository orderItemsRepository;
 
-    public List<AdminOrderResponse> getAllOrders() {
-        log.debug("AdminOrderService - getAllOrders: Fetching all orders from the repository");
-        return ordersRepository.findAll()
-                .stream()
+    public List<AdminOrderResponse> getOrders(AdminOrderSearchRequest request) {
+        List<Orders> results = ordersRepository.searchOrders(
+                request.searchType(),
+                request.keyword(),
+                request.status(),
+                request.startDate(),
+                request.endDate()
+        );
+
+        return results.stream()
                 .map(AdminOrderResponse::fromEntity)
                 .collect(Collectors.toList());
     }
