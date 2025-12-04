@@ -5,6 +5,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataNotF
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.dto.OrderDetailResponse;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItemStatus;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItems;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderStatus;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.Orders;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.OrderItemsRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.OrdersRepository;
@@ -27,10 +28,18 @@ public class AdminOrderService {
     private final OrdersRepository ordersRepository;
     private final OrderItemsRepository orderItemsRepository;
 
-    public List<AdminOrderResponse> getAllOrders() {
-        log.debug("AdminOrderService - getAllOrders: Fetching all orders from the repository");
-        return ordersRepository.findAll()
-                .stream()
+    public List<AdminOrderResponse> getOrders(
+            String searchType,
+            String keyword,
+            OrderStatus status,
+            String startDate,
+            String endDate
+    ) {
+        List<Orders> results = ordersRepository.searchOrders(
+                searchType, keyword, status, startDate, endDate
+        );
+
+        return results.stream()
                 .map(AdminOrderResponse::fromEntity)
                 .collect(Collectors.toList());
     }
