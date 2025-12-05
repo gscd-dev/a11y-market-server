@@ -1,4 +1,4 @@
-package com.multicampus.gamesungcoding.a11ymarketserver.feature.main.model;
+package com.multicampus.gamesungcoding.a11ymarketserver.feature.main.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
