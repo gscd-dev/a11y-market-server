@@ -41,7 +41,7 @@ public class CartController {
     }
 
     // POST /api/v1/cart/items 상품 추가 기능
-    @PostMapping("/v1/cart/items")
+    @PostMapping("/v1/cart/me/items")
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<CartItemUpdatedResponse> addItem(
             @Valid @RequestBody CartAddRequest req,
@@ -53,7 +53,7 @@ public class CartController {
     }
 
     // PATCH /api/v1/cart/items/{cartItemId} 수량 조정 기능
-    @PatchMapping("/v1/cart/items/{cartItemId}")
+    @PatchMapping("/v1/cart/me/items/{cartItemId}")
     public ResponseEntity<CartItemUpdatedResponse> updateQuantity(
             @PathVariable @NotNull String cartItemId,
             @Valid @RequestBody CartQtyUpdateRequest body,
@@ -68,7 +68,7 @@ public class CartController {
     }
 
     // DELETE /api/v1/cart/items 상품 삭제 기능
-    @DeleteMapping("/v1/cart/items")
+    @DeleteMapping("/v1/cart/me/items")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> deleteItems(
             @Valid @RequestBody CartItemDeleteRequest itemIds,
