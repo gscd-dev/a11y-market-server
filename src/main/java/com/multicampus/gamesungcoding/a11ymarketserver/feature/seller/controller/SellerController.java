@@ -75,13 +75,30 @@ public class SellerController {
     }
 
 
-    @PutMapping("/v1/seller/products/{productId}")
+    @PutMapping(path = "/v1/seller/products/{productId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ProductDTO> updateProduct(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable String productId,
-            @RequestBody @Valid SellerProductUpdateRequest request) {
+            @AuthenticationPrincipal
+            UserDetails userDetails,
 
-        ProductDTO result = sellerService.updateProduct(userDetails.getUsername(), UUID.fromString(productId), request);
+            @PathVariable
+            String productId,
+
+            @Valid
+            @RequestPart("data")
+            @Parameter(
+                    description = "Product registration data",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            )
+            SellerProductUpdateRequest request,
+
+            @RequestPart(value = "images", required = false)
+            List<MultipartFile> images) {
+
+        ProductDTO result = sellerService.updateProduct(
+                userDetails.getUsername(),
+                UUID.fromString(productId),
+                request,
+                images);
         return ResponseEntity.ok(result);
     }
 

@@ -30,10 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -153,7 +150,10 @@ public class SellerService {
     }
 
     @Transactional
-    public ProductDTO updateProduct(String userEmail, UUID productId, SellerProductUpdateRequest request) {
+    public ProductDTO updateProduct(String userEmail,
+                                    UUID productId,
+                                    SellerProductUpdateRequest request,
+                                    List<MultipartFile> images) {
 
         Seller seller = sellerRepository.findByUser_UserEmail(userEmail)
                 .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
@@ -179,6 +179,41 @@ public class SellerService {
                 request.productStock()
         );
 
+        var dbImages = product.getProductImages();
+        var requestImages = request.imageMetadataList();
+
+        var requestImageIds = requestImages.stream()
+                .map(ImageMetadata::imageId)
+                .filter(Objects::nonNull)
+                .toList();
+
+        var imagesToDelete = dbImages.stream()
+                .filter(img -> !requestImageIds.contains(img.getImageId()))
+                .toList();
+
+        for (var img : imagesToDelete) {
+            this.deleteImageWithS3(img);
+            product.getProductImages().remove(img);
+        }
+
+        for (var img : requestImages) {
+            if (img.isNew()) {
+                ProductImages existsImage = dbImages.stream()
+                        .filter(imgEntity -> imgEntity.getImageId().equals(img.imageId()))
+                        .findFirst()
+                        .orElseThrow(() -> new DataNotFoundException("기존 이미지 정보를 찾을 수 없습니다."));
+                existsImage.updateMetadata(img);
+            } else {
+                var newImages = saveImageWithMetadata(
+                        images,
+                        List.of(img),
+                        seller.getSellerId(),
+                        product.getProductId()
+                );
+                product.getProductImages().addAll(newImages);
+            }
+        }
+
         return ProductDTO.fromEntity(productRepository.save(product));
     }
 
@@ -194,6 +229,11 @@ public class SellerService {
 
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new DataNotFoundException("상품 정보를 찾을 수 없습니다."));
+
+        var images = product.getProductImages();
+        for (var img : images) {
+            this.deleteImageWithS3(img);
+        }
 
         if (!product.getSeller().getSellerId().equals(seller.getSellerId())) {
             throw new InvalidRequestException("본인의 상품만 삭제할 수 있습니다.");
@@ -215,6 +255,11 @@ public class SellerService {
         }
 
         for (Product product : products) {
+            var images = product.getProductImages();
+            for (var img : images) {
+                this.deleteImageWithS3(img);
+            }
+
             if (!product.getSeller().getSellerId().equals(seller.getSellerId())) {
                 throw new InvalidRequestException("본인의 상품만 삭제할 수 있습니다.");
             }
@@ -437,7 +482,7 @@ public class SellerService {
     }
 
     private String uploadImageToS3(MultipartFile image, UUID sellerId, UUID productId) {
-        log.info("Uploading image to S3 for sellerId: {}, productId: {}", sellerId, productId);
+        log.debug("Uploading image to S3 for sellerId: {}, productId: {}", sellerId, productId);
 
         if (image.isEmpty()) {
             log.info("Image is empty for sellerId: {}, productId: {}", sellerId, productId);
@@ -454,8 +499,8 @@ public class SellerService {
         log.info("Generated unique file name: {}", uniqueFileName);
 
         try {
-            String bucketName = s3StorageProperties.getBucket();
-            s3Template.upload(bucketName,
+            String bucketName = this.s3StorageProperties.getBucket();
+            this.s3Template.upload(bucketName,
                     uniqueFileName,
                     image.getInputStream());
 
@@ -464,6 +509,33 @@ public class SellerService {
             return "/" + bucketName + "/" + uniqueFileName;
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void deleteImageWithS3(ProductImages img) {
+        if (img == null || img.getImageUrl() == null) {
+            log.debug("Image or image URL is null, skipping S3 deletion.");
+            return;
+        }
+
+        log.debug("Deleting image from S3: {}", img.getImageUrl());
+
+        var bucketAndKey = img.getImageUrl().substring(1); // 앞의 '/' 제거
+        var splitIndex = bucketAndKey.indexOf('/');
+        if (splitIndex == -1) {
+            log.warn("Invalid S3 image URL format: {}", img.getImageUrl());
+            return;
+        }
+
+        try {
+            String bucketName = bucketAndKey.substring(0, splitIndex);
+            String objectKey = bucketAndKey.substring(splitIndex + 1);
+
+            this.s3Template.deleteObject(bucketName, objectKey);
+            log.debug("Deleted image from S3: bucket={}, key={}", bucketName, objectKey);
+            this.productImagesRepository.delete(img);
+        } catch (Exception e) {
+            log.error("Failed to delete image from S3: {}", img.getImageUrl(), e);
         }
     }
 
