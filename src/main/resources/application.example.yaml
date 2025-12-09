@@ -1,6 +1,10 @@
 spring:
   application:
     name: a11ymarket-server
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 100MB
   # Database configuration
   datasource:
     url: dbURL
@@ -9,7 +13,10 @@ spring:
   # JPA configuration
   jpa:
     show-sql: false
-    properties.hibernate.show_sql: false
+    properties:
+      hibernate:
+        show_sql: false
+        default_batch_fetch_size: 100
     hibernate:
       ddl-auto: validate
   # Disable Open Session in View to prevent lazy loading issues
@@ -77,6 +84,10 @@ management:
 logging:
   level:
     root: INFO
+    org:
+      springframework:
+        web: DEBUG
+        security: DEBUG
     com:
       multicampus:
         gamesungcoding:
