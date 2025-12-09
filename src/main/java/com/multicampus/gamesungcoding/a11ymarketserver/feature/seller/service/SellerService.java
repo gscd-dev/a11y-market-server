@@ -176,7 +176,8 @@ public class SellerService {
                 request.productName(),
                 request.productDescription(),
                 request.productPrice(),
-                request.productStock()
+                request.productStock(),
+                request.productStatus()
         );
 
         var dbImages = product.getProductImages();
@@ -198,12 +199,6 @@ public class SellerService {
 
         for (var img : requestImages) {
             if (img.isNew()) {
-                ProductImages existsImage = dbImages.stream()
-                        .filter(imgEntity -> imgEntity.getImageId().equals(img.imageId()))
-                        .findFirst()
-                        .orElseThrow(() -> new DataNotFoundException("기존 이미지 정보를 찾을 수 없습니다."));
-                existsImage.updateMetadata(img);
-            } else {
                 var newImages = saveImageWithMetadata(
                         images,
                         List.of(img),
@@ -211,6 +206,12 @@ public class SellerService {
                         product.getProductId()
                 );
                 product.getProductImages().addAll(newImages);
+            } else {
+                var existsImage = dbImages.stream()
+                        .filter(imgEntity -> imgEntity.getImageId().equals(img.imageId()))
+                        .findFirst()
+                        .orElseThrow(() -> new DataNotFoundException("기존 이미지 정보를 찾을 수 없습니다."));
+                existsImage.updateMetadata(img);
             }
         }
 
@@ -457,6 +458,10 @@ public class SellerService {
                                                       List<ImageMetadata> metadataList,
                                                       UUID sellerId,
                                                       UUID productId) {
+        if (images == null || images.isEmpty()) {
+            return List.of();
+        }
+
         Map<String, MultipartFile> fileMap = images.stream()
                 .collect(Collectors.toMap(MultipartFile::getOriginalFilename, Function.identity()));
 

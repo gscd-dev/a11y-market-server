@@ -75,7 +75,7 @@ public class SellerController {
     }
 
 
-    @PutMapping(path = "/v1/seller/products/{productId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(path = "/v1/seller/products/{productId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProductDTO> updateProduct(
             @AuthenticationPrincipal
             UserDetails userDetails,
