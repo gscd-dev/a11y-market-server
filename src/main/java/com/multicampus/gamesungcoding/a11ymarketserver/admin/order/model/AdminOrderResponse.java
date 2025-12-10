@@ -27,7 +27,6 @@ public record AdminOrderResponse(
         LocalDateTime createdAt) {
 
     public static AdminOrderResponse fromEntity(Orders entity) {
-        log.debug("AdminOrderResponse - fromEntity: Converting Orders entity to AdminOrderResponse DTO");
         var items = entity.getOrderItems().stream()
                 .map(OrderItemResponse::fromEntity)
                 .toList();
