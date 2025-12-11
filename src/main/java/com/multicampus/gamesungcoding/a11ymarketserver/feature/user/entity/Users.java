@@ -1,6 +1,7 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.common.id.UuidV7;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.entity.Seller;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.dto.UserUpdateRequest;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -52,6 +53,10 @@ public class Users {
     @LastModifiedDate
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    @OneToOne(mappedBy = "user")
+    private Seller seller;
+
 
     // 회원 정보 수정
     public void updateUserInfo(UserUpdateRequest request) {
