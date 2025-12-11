@@ -11,6 +11,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.dto.UserDele
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.dto.UserResponse;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.dto.UserUpdateRequest;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity.UserRole;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserOauthLinksRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ public class UserService {
     private final OrderItemsRepository orderItemsRepository;
     private final ProductRepository productRepository;
     private final SellerService sellerService;
+    private final UserOauthLinksRepository userOauthLinksRepository;
 
     // 마이페이지 - 회원 정보 조회
     public UserResponse getUserInfo(String userEmail) {
@@ -55,7 +57,9 @@ public class UserService {
         var user = userRepository.findByUserEmail(userEmail)
                 .orElseThrow(() -> new UserNotFoundException("사용자 정보가 존재하지 않습니다."));
 
-        if (!passwordEncoder.matches(req.userPassword(), user.getUserPass())) {
+        var isOauthUser = userOauthLinksRepository.existsByUser(user);
+
+        if (!passwordEncoder.matches(req.userPassword(), user.getUserPass()) && !isOauthUser) {
             throw new InvalidRequestException("비밀번호가 일치하지 않습니다.");
         }
 

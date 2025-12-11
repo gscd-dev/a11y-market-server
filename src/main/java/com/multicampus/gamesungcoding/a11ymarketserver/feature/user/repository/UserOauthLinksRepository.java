@@ -14,4 +14,6 @@ public interface UserOauthLinksRepository extends JpaRepository<UserOauthLinks, 
     Optional<UserOauthLinks> findByOauthProviderId(String providerId);
 
     Optional<UserOauthLinks> findByUser(Users users);
+
+    boolean existsByUser(Users user);
 }

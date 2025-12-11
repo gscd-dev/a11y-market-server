@@ -83,7 +83,7 @@ public class AddressService {
             if (dto.isDefault()) {
                 // 기본 배송지로 설정
                 this.setDefaultAddressByAddressId(userEmail, UUID.fromString(addressId));
-            } else if (address.getIsDefault() && !dto.isDefault()) {
+            } else if (address.getIsDefault()) {
                 // 기본 배송지 설정 해제
                 address.setDefault(false);
             }
