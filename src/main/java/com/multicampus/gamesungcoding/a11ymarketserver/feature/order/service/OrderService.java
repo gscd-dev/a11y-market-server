@@ -17,13 +17,16 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.OrdersRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.Product;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.ProductImages;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.ProductStatus;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.ProductImagesRepository;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.ProductRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity.Users;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,15 +34,16 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class OrderService {
     private final CartItemRepository cartItemRepository;
     private final AddressRepository addressRepository;
     private final OrdersRepository ordersRepository;
     private final OrderItemsRepository orderItemsRepository;
     private final ProductImagesRepository productImagesRepository;
+    private final ProductRepository productRepository;
 
     // 결제 정보 조회
-    @Transactional(readOnly = true)
     public OrderCheckoutResponse getCheckoutInfo(String userEmail, OrderCheckRequest req) {
         if (req.orderAllItems() == false && (req.checkoutItemIds() == null || req.checkoutItemIds().isEmpty())) {
             throw new InvalidRequestException("결제할 장바구니 아이템이 없습니다.");
@@ -85,6 +89,68 @@ public class OrderService {
                         .map(AddressResponse::fromEntity)
                         .toList(),
                 defaultAddress.getAddressId()
+        );
+    }
+
+    public OrderSheetResponse getOrderSheet(String userEmail, OrderSheetRequest req) {
+        List<OrderItemResponse> orderItems = new ArrayList<>();
+
+        if (req.isFromCart()) {
+            var itemIds = req.getCartItemIds()
+                    .stream()
+                    .map(UUID::fromString)
+                    .toList();
+
+            var cartItems = cartItemRepository.findAllById(itemIds);
+            for (var item : cartItems) {
+                if (item.getProduct().getProductStock() < item.getQuantity()) {
+                    throw new InvalidRequestException("재고가 부족한 상품이 포함되어 있습니다.");
+                }
+
+                if (item.getProduct().getProductStatus() != ProductStatus.APPROVED) {
+                    throw new InvalidRequestException("구매할 수 없는 상품이 포함되어 있습니다.");
+                }
+
+                orderItems.add(OrderItemResponse.fromEntity(item));
+            }
+        } else {
+            var orderItemReq = req.getDirectOrderItem();
+            var product = productRepository.findById(UUID.fromString(orderItemReq.productId()))
+                    .orElseThrow(() -> new DataNotFoundException("상품을 찾을 수 없습니다."));
+
+            if (product.getProductStatus() != ProductStatus.APPROVED) {
+                throw new InvalidRequestException("구매할 수 없는 상품입니다.");
+            }
+
+            if (product.getProductStock() < orderItemReq.quantity()) {
+                throw new InvalidRequestException("재고가 부족한 상품입니다.");
+            }
+            orderItems.add(OrderItemResponse.of(product, orderItemReq.quantity()));
+        }
+
+        int totalAmount = orderItems.stream()
+                .mapToInt(item -> item.productPrice() * item.productQuantity())
+                .sum();
+
+        int shippingFee = 0;
+
+        // 사용가능한 주소 조회
+        List<Addresses> addresses = addressRepository.findAllByUser_UserEmail(userEmail);
+        if (addresses.isEmpty()) {
+            throw new DataNotFoundException("사용 가능한 배송지가 없습니다.");
+        }
+
+        var defaultAddress = addresses
+                .stream()
+                .filter(Addresses::getIsDefault)
+                .findFirst()
+                .orElse(addresses.getFirst()); // 기본 배송지가 없으면 첫 번째 주소 사용
+
+        return new OrderSheetResponse(
+                orderItems,
+                totalAmount,
+                shippingFee,
+                totalAmount + shippingFee
         );
     }
 

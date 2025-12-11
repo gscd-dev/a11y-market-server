@@ -35,6 +35,17 @@ public class OrderController {
                 .ok(orderService.getCheckoutInfo(userDetails.getUsername(), req));
     }
 
+    @PostMapping("/v2/orders/pre-check")
+    public ResponseEntity<OrderSheetResponse> getOrderSheet(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody OrderSheetRequest req) {
+
+        log.debug("OrderSheetRequest: {}", req);
+
+        return ResponseEntity
+                .ok(orderService.getOrderSheet(userDetails.getUsername(), req));
+    }
+
     // 주문 생성
     @PostMapping("/v1/orders")
     @ResponseStatus(HttpStatus.CREATED)
