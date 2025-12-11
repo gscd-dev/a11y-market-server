@@ -116,6 +116,7 @@ class AuthControllerTest {
                                 null,
                                 null,
                                 null,
+                                null,
                                 null
                         )
                 );

@@ -65,6 +65,7 @@ class UserManageControllerTest {
                                 null,
                                 mockRole,
                                 null,
+                                null,
                                 null
                         )
                 );

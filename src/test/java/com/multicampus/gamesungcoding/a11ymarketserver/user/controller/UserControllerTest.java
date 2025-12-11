@@ -55,6 +55,7 @@ class UserControllerTest {
                 null,
                 null,
                 null,
+                null,
                 null);
 
         given(userService.getUserInfo(mockEmail)).willReturn(mockResponse);
