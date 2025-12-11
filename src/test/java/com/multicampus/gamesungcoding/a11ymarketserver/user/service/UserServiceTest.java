@@ -9,6 +9,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.service.Se
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.dto.UserDeleteRequest;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity.UserRole;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity.Users;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserOauthLinksRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.service.UserService;
 import org.junit.jupiter.api.Assertions;
@@ -42,6 +43,8 @@ class UserServiceTest {
     private SellerService sellerService;
     @Mock
     private ProductRepository productRepository;
+    @Mock
+    private UserOauthLinksRepository userOauthLinksRepository;
 
     @Test
     @DisplayName("회원 탈퇴 성공 - 일반 회원")
@@ -59,6 +62,8 @@ class UserServiceTest {
                 .thenReturn(Optional.of(user));
         BDDMockito.when(passwordEncoder.matches(password, user.getUserPass()))
                 .thenReturn(true);
+        BDDMockito.when(userOauthLinksRepository.existsByUser(user))
+                .thenReturn(false);
 
         var req = new UserDeleteRequest(
                 password);
@@ -81,6 +86,9 @@ class UserServiceTest {
                 .thenReturn(Optional.of(user));
         BDDMockito.when(passwordEncoder.matches(wrongPass, user.getUserPass()))
                 .thenReturn(false);
+        BDDMockito.when(userOauthLinksRepository.existsByUser(user))
+                .thenReturn(false);
+
         var req = new UserDeleteRequest(
                 wrongPass);
 
@@ -101,6 +109,8 @@ class UserServiceTest {
                 .thenReturn(Optional.of(user));
         BDDMockito.when(passwordEncoder.matches(password, user.getUserPass()))
                 .thenReturn(true);
+        BDDMockito.when(userOauthLinksRepository.existsByUser(user))
+                .thenReturn(false);
 
         var req = new UserDeleteRequest(password);
         userService.deleteUser(email, req);
@@ -126,6 +136,8 @@ class UserServiceTest {
                         OrderItemStatus.inProgressStatuses()
                 ))
                 .thenReturn(true);
+        BDDMockito.when(userOauthLinksRepository.existsByUser(user))
+                .thenReturn(false);
 
         var req = new UserDeleteRequest(password);
         Assertions.assertThrows(InvalidRequestException.class, () -> userService.deleteUser(email, req));
