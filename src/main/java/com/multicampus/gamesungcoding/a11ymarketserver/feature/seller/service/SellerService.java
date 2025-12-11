@@ -454,6 +454,13 @@ public class SellerService {
         return claimItems.stream().map(SellerOrderItemResponse::fromEntity).toList();
     }
 
+    public SellerInfoResponse getSellerInfoById(UUID sellerId) {
+        Seller seller = sellerRepository.findById(sellerId)
+                .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
+
+        return SellerInfoResponse.fromEntity(seller);
+    }
+
     private List<ProductImages> saveImageWithMetadata(List<MultipartFile> images,
                                                       List<ImageMetadata> metadataList,
                                                       UUID sellerId,

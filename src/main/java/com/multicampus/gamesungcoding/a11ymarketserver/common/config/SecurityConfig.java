@@ -74,6 +74,7 @@ public class SecurityConfig {
                                 "/api/*/auth/oauth2/code/kakao",
                                 "/api/*/categories/**",
                                 "/api/*/products/**",
+                                "/api/*/seller/info/**",
                                 "/api/*/main/**",
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",

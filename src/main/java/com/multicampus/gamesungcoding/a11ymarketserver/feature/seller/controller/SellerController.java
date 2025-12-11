@@ -208,4 +208,12 @@ public class SellerController {
 
         return ResponseEntity.ok(recentOrders);
     }
+
+    @GetMapping("/v1/seller/info/{sellerId}")
+    public ResponseEntity<SellerInfoResponse> getSellerInfo(
+            @PathVariable String sellerId) {
+        return ResponseEntity.ok(
+                sellerService.getSellerInfoById(UUID.fromString(sellerId))
+        );
+    }
 }
