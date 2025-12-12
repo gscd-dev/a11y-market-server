@@ -43,6 +43,15 @@ public class SellerController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @PutMapping("/v1/seller/me")
+    public ResponseEntity<SellerInfoResponse> updateSellerInfo(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody @Valid SellerUpdateRequest request) {
+
+        SellerInfoResponse response = sellerService.updateSellerInfo(userDetails.getUsername(), request);
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping(value = "/v1/seller/products", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<ProductDetailResponse> registerProduct(

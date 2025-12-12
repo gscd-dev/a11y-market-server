@@ -26,6 +26,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity.Users
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.util.gemini.service.ProductAnalysisService;
 import io.awspring.cloud.s3.S3Template;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -607,5 +608,17 @@ public class SellerService {
                 .usageContext(result.usageContext())
                 .usageMethod(result.usageMethod())
                 .build();
+    }
+
+    public SellerInfoResponse updateSellerInfo(String userEmail, @Valid SellerUpdateRequest req) {
+        var seller = sellerRepository.findByUser_UserEmail(userEmail)
+                .orElseThrow(() -> new DataNotFoundException("판매자 정보가 존재하지 않습니다."));
+
+        seller.updateSellerInfo(
+                req.sellerName(),
+                req.sellerIntro()
+        );
+
+        return SellerInfoResponse.fromEntity(sellerRepository.save(seller));
     }
 }

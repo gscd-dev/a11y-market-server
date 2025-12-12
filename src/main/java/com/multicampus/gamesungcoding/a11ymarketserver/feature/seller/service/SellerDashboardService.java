@@ -53,6 +53,7 @@ public class SellerDashboardService {
             return new SellerDashboardResponse(
                     seller.getSellerId(),
                     seller.getSellerName(),
+                    seller.getSellerIntro(),
                     null,
                     null,
                     null,
@@ -63,6 +64,7 @@ public class SellerDashboardService {
             return new SellerDashboardResponse(
                     seller.getSellerId(),
                     seller.getSellerName(),
+                    seller.getSellerIntro(),
                     statsData.getTotalRevenue(),
                     statsData.getTotalOrderCount(),
                     calculateRefundRate(statsData),
