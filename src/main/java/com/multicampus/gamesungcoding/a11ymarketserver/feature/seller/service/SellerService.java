@@ -354,7 +354,31 @@ public class SellerService {
 
         validateSellerOrderItemStatus(currentStatus, nextStatus);
 
-        item.updateOrderItemStatus(req.status());
+        if (nextStatus == OrderItemStatus.REJECTED && currentStatus == OrderItemStatus.PAID) {
+            tossPaymentService.cancelPayment(
+                    item.getOrder().getPaymentKey(),
+                    "주문 거절에 따른 결제 취소",
+                    item.getProductPrice() * item.getProductQuantity()
+            );
+        } else if (nextStatus == OrderItemStatus.CANCELED) {
+            tossPaymentService.cancelPayment(
+                    item.getOrder().getPaymentKey(),
+                    "주문 취소 승인",
+                    item.getProductPrice() * item.getProductQuantity()
+            );
+
+            item.updateOrderItemStatus(OrderItemStatus.CANCELED);
+        } else if (nextStatus == OrderItemStatus.RETURNED) {
+            tossPaymentService.cancelPayment(
+                    item.getOrder().getPaymentKey(),
+                    "반품 승인",
+                    item.getProductPrice() * item.getProductQuantity()
+            );
+
+            item.updateOrderItemStatus(OrderItemStatus.RETURNED);
+        } else {
+            item.updateOrderItemStatus(req.status());
+        }
     }
 
     private void validateSellerOrderItemStatus(OrderItemStatus current, OrderItemStatus next) {
