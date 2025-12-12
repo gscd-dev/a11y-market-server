@@ -26,6 +26,10 @@ CREATE OR REPLACE VIEW view_monthly_popular_products AS
          -1
       )
       AND o.created_at < sysdate
+      AND oi.order_item_status IN ( 'PAID',
+                                    'ACCEPTED',
+                                    'SHIPPED',
+                                    'CONFIRMED' )
       AND p.product_status = 'APPROVED'
     GROUP BY p.product_id,
              p.product_name,

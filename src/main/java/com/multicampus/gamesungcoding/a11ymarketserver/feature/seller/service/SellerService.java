@@ -72,16 +72,7 @@ public class SellerService {
 
         Seller saved = sellerRepository.save(seller);
 
-        return new SellerApplyResponse(
-                saved.getSellerId(),
-                saved.getSellerName(),
-                saved.getBusinessNumber(),
-                saved.getSellerGrade(),
-                saved.getSellerIntro(),
-                saved.getIsA11yGuarantee(),
-                saved.getSellerSubmitStatus(),
-                saved.getSubmitDate(),
-                saved.getApprovedDate());
+        return SellerApplyResponse.fromEntity(seller);
     }
 
     @Transactional
