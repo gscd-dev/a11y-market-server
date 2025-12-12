@@ -123,11 +123,16 @@ public class SellerController {
     }
 
     @GetMapping("/v1/seller/orders/items")
-    public ResponseEntity<List<SellerOrderItemResponse>> getReceivedOrders(
+    public ResponseEntity<SellerOrderInquireResponse> getReceivedOrders(
             @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
             @RequestParam(required = false) OrderItemStatus orderItemStatus) {
 
-        var responses = sellerService.getReceivedOrders(userDetails.getUsername(), orderItemStatus);
+        var responses = sellerService.getReceivedOrders(userDetails.getUsername(),
+                orderItemStatus,
+                page,
+                size);
         return ResponseEntity.ok(responses);
     }
 

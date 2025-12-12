@@ -10,7 +10,10 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.Orde
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItems;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.OrderItemsRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.service.TossPaymentService;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.*;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ImageMetadata;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ProductDTO;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ProductDetailResponse;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ProductInquireResponse;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.*;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.CategoryRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.ProductAiSummaryRepository;
@@ -25,6 +28,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.util.gemini.service.Produ
 import io.awspring.cloud.s3.S3Template;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -286,8 +290,10 @@ public class SellerService {
     }
 
     @Transactional(readOnly = true)
-    public List<SellerOrderItemResponse> getReceivedOrders(String userEmail,
-                                                           OrderItemStatus orderItemStatus) {
+    public SellerOrderInquireResponse getReceivedOrders(String userEmail,
+                                                        OrderItemStatus orderItemStatus,
+                                                        Integer page,
+                                                        Integer size) {
 
         Seller seller = sellerRepository.findByUser_UserEmail(userEmail)
                 .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
@@ -296,24 +302,41 @@ public class SellerService {
             throw new InvalidRequestException("승인된 판매자만 주문 목록을 조회할 수 있습니다.");
         }
 
-        List<OrderItems> itemsList;
+        var pageable = PageRequest.of(
+                page != null ? page : 0,
+                size != null ? size : 20
+        );
+        Page<OrderItems> itemsList;
+        int itemCount;
+
         if (orderItemStatus != null) {
             itemsList = orderItemsRepository
-                    .findAllByProduct_Seller_User_UserEmail_AndOrderItemStatus(
+                    .findAllByProduct_Seller_User_UserEmail_AndOrderItemStatus_OrderByOrder_CreatedAtDesc(
                             userEmail,
-                            orderItemStatus);
+                            orderItemStatus,
+                            pageable);
+            itemCount = orderItemsRepository.countAllByProduct_Seller_User_UserEmail_AndOrderItemStatus(
+                    userEmail,
+                    orderItemStatus);
         } else {
             itemsList = orderItemsRepository
-                    .findAllByProduct_Seller_User_UserEmail(userEmail);
+                    .findAllByProduct_Seller_User_UserEmail_OrderByOrder_CreatedAtDesc(userEmail, pageable);
+            itemCount = orderItemsRepository
+                    .countAllByProduct_Seller_User_UserEmail(
+                            userEmail
+                    );
         }
 
         if (itemsList.isEmpty()) {
-            return List.of();
+            return new SellerOrderInquireResponse(List.of(), 0);
         }
 
-        return itemsList.stream()
-                .map(SellerOrderItemResponse::fromEntity)
-                .toList();
+        return new SellerOrderInquireResponse(
+                itemsList.stream()
+                        .map(SellerOrderItemResponse::fromEntity)
+                        .toList(),
+                itemCount
+        );
     }
 
     @Transactional
@@ -351,27 +374,33 @@ public class SellerService {
         }
 
         switch (current) {
+            case ORDERED -> {
+                if (next != OrderItemStatus.PAID && next != OrderItemStatus.CANCELED) {
+                    throw new InvalidRequestException("'결제대기' 상태에서는 '결제됨' 또는 '취소됨'으로만 변경할 수 있습니다.");
+                }
+            }
+
             case PAID -> {
                 if (next != OrderItemStatus.ACCEPTED && next != OrderItemStatus.REJECTED) {
-                    throw new InvalidRequestException("PAID 상태에서는 ACCEPTED 또는 REJECTED로만 변경할 수 있습니다.");
+                    throw new InvalidRequestException("'결제됨' 상태에서는 '주문 접수됨' 또는 '주문 거절됨'으로만 변경할 수 있습니다.");
                 }
             }
             case ACCEPTED -> {
                 if (next != OrderItemStatus.SHIPPED) {
-                    throw new InvalidRequestException("ACCEPTED 상태에서는 SHIPPED로만 변경할 수 있습니다.");
+                    throw new InvalidRequestException("'주문 접수됨' 상태에서는 '배송됨'로만 변경할 수 있습니다.");
                 }
             }
             case CANCEL_PENDING -> {
                 if (next != OrderItemStatus.CANCELED && next != OrderItemStatus.CANCEL_REJECTED) {
-                    throw new InvalidRequestException("취소 요청 상태에서는 취소됨 또는 취소 거절만 가능합니다.");
+                    throw new InvalidRequestException("'취소 요청' 상태에서는 '취소됨' 또는 '취소 거절'만 가능합니다.");
                 }
             }
             case RETURN_PENDING -> {
                 if (next != OrderItemStatus.RETURNED && next != OrderItemStatus.RETURN_REJECTED) {
-                    throw new InvalidRequestException("반품 요청 상태에서는 반품 완료 또는 반품 거절만 가능합니다.");
+                    throw new InvalidRequestException("'반품 요청' 상태에서는 '반품 완료' 또는 '반품 거절'만 가능합니다.");
                 }
             }
-            default -> throw new InvalidRequestException("현재 주문 상태에서는 판매자가 상태를 변경할 수 없습니다.");
+            default -> throw new InvalidRequestException("현재 주문 상태에서는 판매자가 상태를 변경할 수 없습니다. 관리자에게 문의하세요.");
 
         }
     }
