@@ -228,11 +228,6 @@ public class SellerService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new DataNotFoundException("상품 정보를 찾을 수 없습니다."));
 
-        var images = product.getProductImages();
-        for (var img : images) {
-            this.deleteImageWithS3(img);
-        }
-
         if (!product.getSeller().getSellerId().equals(seller.getSellerId())) {
             throw new InvalidRequestException("본인의 상품만 삭제할 수 있습니다.");
         }
@@ -253,11 +248,6 @@ public class SellerService {
         }
 
         for (Product product : products) {
-            var images = product.getProductImages();
-            for (var img : images) {
-                this.deleteImageWithS3(img);
-            }
-
             if (!product.getSeller().getSellerId().equals(seller.getSellerId())) {
                 throw new InvalidRequestException("본인의 상품만 삭제할 수 있습니다.");
             }
