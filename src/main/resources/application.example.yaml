@@ -1,0 +1,112 @@
+spring:
+  application:
+    name: a11ymarket-server
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 100MB
+  # Database configuration
+  datasource:
+    url: dbURL
+    username: DBUSER
+    password: DBPASSWORD
+  # JPA configuration
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        show_sql: false
+        default_batch_fetch_size: 100
+    hibernate:
+      ddl-auto: validate
+  # Disable Open Session in View to prevent lazy loading issues
+  open-in-view: false
+  # AI model configuration
+  ai:
+    openai:
+      api-key: your-api-key
+      base-url: "https://generativelanguage.googleapis.com/v1beta/openai/"
+      chat:
+        options:
+          model: "gemini-2.0-flash"
+          temperature: 0.7
+  # AWS S3 (or MinIO) configuration
+  cloud:
+    aws:
+      region:
+        static: user-region
+      credentials:
+        access-key: "user-access-key"
+        secret-key: "user-secret-key"
+      s3:
+        endpoint: "your-bucket-endpoint"
+        path-style-access-enabled: true
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: your-client-id
+            client-secret: your-client-secret
+            client-name: Kakao
+            redirect-uri: http://localhost:8080/login/oauth2/code/kakao
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
+
+oauth2:
+  redirect-uri: http://localhost:5173/auth/oauth-redirect
+  signup-uri: http://localhost:5173/auth/oauth-signup
+
+# S3(MinIO) bucket configuration
+app:
+  s3:
+    bucket: bucket-name
+
+# Server configuration
+server:
+  port: 8080
+
+# Management endpoint configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health # health check endpoint only
+
+# Logging configuration
+logging:
+  level:
+    root: INFO
+    org:
+      springframework:
+        web: DEBUG
+        security: DEBUG
+    com:
+      multicampus:
+        gamesungcoding:
+          a11ymarketserver: DEBUG
+
+# CORS configuration
+cors:
+  allowed-origin-patterns:
+    - "http://localhost:8080"
+    - "http://localhost:5173"
+    - # update with your domain
+
+    # JWT configuration
+jwt:
+  secret: your-jwt-secret-key
+  access-token-validity-ms: 1800000
+  refresh-token-validity-ms: 604800000
+
+# Swagger configuration
+springdoc:
+  api-docs:
+    enabled: true

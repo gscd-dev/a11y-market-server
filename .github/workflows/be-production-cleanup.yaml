@@ -1,0 +1,31 @@
+name: BE | Production - Cleanup
+on:
+  workflow_dispatch:
+
+env:
+  SERVICE_NAME: be-staging
+  DEPLOY_PATH: ${{ secrets.AWS_DOCKER_DIR }}/deployments/be-production
+
+jobs:
+  cleanup:
+    name: Cleanup Staging Deployment
+    runs-on: [ self-hosted, be, prod ]
+
+    steps:
+      - name: Cleanup server resources via SSH
+        run: |
+          export SERVICE_NAME=${{ env.SERVICE_NAME }}
+          export DEPLOY_PATH=${{ env.AWS_DEPLOY_PATH }}
+          
+          echo "[LOG] Attempting to cleanup staging project: $SERVICE_NAME"
+          docker stop "$SERVICE_NAME" || echo "[LOG] Container $SERVICE_NAME not found or already stopped."
+          docker rm "$SERVICE_NAME" || echo "[LOG] Container $SERVICE_NAME not found or already removed."
+          
+          if [ -d "$DEPLOY_PATH" ]; then
+            echo "[LOG] Removing deployment directory: $DEPLOY_PATH"
+            rm -rf $DEPLOY_PATH
+          else
+            echo "[LOG] Deployment directory not found: $DEPLOY_PATH"
+          fi
+          
+            echo "[LOG] Cleanup for $SERVICE_NAME finished"

@@ -11,7 +11,7 @@ jobs:
   build-and-push:
     name: Build, Test and Push Image
     # Using self-hosted runner
-    runs-on: self-hosted
+    runs-on: [ self-hosted, be, qa ]
     outputs:
       # To use next job(deploy)
       image_tag: ${{ steps.vars.outputs.image_tag }}
@@ -85,7 +85,7 @@ jobs:
   deploy:
     name: Deploy to QA Server
     needs: build-and-push
-    runs-on: self-hosted
+    runs-on: [ self-hosted, be, qa ]
 
     env:
       CLEAN_VERSION: ${{ needs.build-and-push.outputs.clean_version }}

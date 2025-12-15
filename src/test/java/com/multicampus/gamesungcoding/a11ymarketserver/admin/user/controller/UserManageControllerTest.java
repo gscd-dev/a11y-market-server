@@ -1,0 +1,78 @@
+package com.multicampus.gamesungcoding.a11ymarketserver.admin.user.controller;
+
+import com.multicampus.gamesungcoding.a11ymarketserver.admin.user.service.AdminUserManageService;
+import com.multicampus.gamesungcoding.a11ymarketserver.common.config.SecurityConfig;
+import com.multicampus.gamesungcoding.a11ymarketserver.common.jwt.provider.JwtTokenProvider;
+import com.multicampus.gamesungcoding.a11ymarketserver.common.oauth.OAuth2LoginSuccessHandler;
+import com.multicampus.gamesungcoding.a11ymarketserver.common.properties.CorsProperties;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.dto.UserResponse;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity.UserRole;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.BDDMockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.UUID;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@Import(SecurityConfig.class)
+@WebMvcTest(AdminUserManageController.class)
+@EnableConfigurationProperties(CorsProperties.class)
+class UserManageControllerTest {
+    @Autowired
+    private MockMvc mockMvc;
+    @MockitoBean
+    private JwtTokenProvider jwtTokenProvider;
+    @MockitoBean
+    private AdminUserManageService service;
+    @MockitoBean
+    private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    @DisplayName("전체 사용자 조회 테스트")
+    void testInquireUsers() throws Exception {
+        this.mockMvc.perform(get("/api/v1/admin/users"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    @DisplayName("사용자 권한 변경 테스트")
+    void testChangeUserPermission() throws Exception {
+        UUID mockUserId = UUID.randomUUID();
+        UserRole mockRole = UserRole.USER;
+
+        BDDMockito.given(this.service.changePermission(eq(mockUserId), any()))
+                .willReturn(
+                        new UserResponse(
+                                mockUserId,
+                                null,
+                                null,
+                                null,
+                                null,
+                                mockRole,
+                                null,
+                                null,
+                                null
+                        )
+                );
+
+        this.mockMvc.perform(patch("/api/v1/admin/users/{userId}/permission", mockUserId)
+                        .param("role", mockRole.name()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userRole").value("USER"));
+    }
+}
