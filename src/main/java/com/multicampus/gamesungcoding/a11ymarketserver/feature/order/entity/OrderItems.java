@@ -83,7 +83,7 @@ public class OrderItems {
                 throw new IllegalStateException("취소 요청이 거부된 상품입니다.");
             case RETURN_REJECTED:
                 throw new IllegalStateException("반품 요청이 거부된 상품입니다.");
-            case ACCEPTED, SHIPPED:
+            case ACCEPTED, SHIPPING, SHIPPED:
                 this.orderItemStatus = OrderItemStatus.CANCEL_PENDING;
                 this.cancelReason = reason;
                 return;

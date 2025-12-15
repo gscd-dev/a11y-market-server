@@ -401,8 +401,13 @@ public class SellerService {
                 }
             }
             case ACCEPTED -> {
+                if (next != OrderItemStatus.SHIPPING) {
+                    throw new InvalidRequestException("'주문 접수됨' 상태에서는 '배송 중'으로만 변경할 수 있습니다.");
+                }
+            }
+            case SHIPPING -> {
                 if (next != OrderItemStatus.SHIPPED) {
-                    throw new InvalidRequestException("'주문 접수됨' 상태에서는 '배송됨'로만 변경할 수 있습니다.");
+                    throw new InvalidRequestException("'배송 중' 상태에서는 '배송 완료'로만 변경할 수 있습니다.");
                 }
             }
             case CANCEL_PENDING -> {
