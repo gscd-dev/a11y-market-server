@@ -50,10 +50,16 @@ public class AddressService {
                                 .receiverAddr2(req.receiverAddr2())
                                 .build()
                 )
-                .isDefault(req.isDefault() != null ? req.isDefault() : false)
+                .isDefault(false)
                 .build();
 
-        return AddressResponse.fromEntity(addressRepository.save(address));
+        address = addressRepository.save(address);
+        if (req.isDefault() != null && req.isDefault()) {
+            // 기본 배송지로 설정
+            this.setDefaultAddressByAddressId(userEmail, address.getAddressId());
+        }
+
+        return AddressResponse.fromEntity(address);
     }
 
     // 배송지 수정
