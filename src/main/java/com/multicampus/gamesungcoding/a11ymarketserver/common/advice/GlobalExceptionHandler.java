@@ -7,6 +7,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.auth.dto.LoginErr
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -75,6 +76,21 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.NOT_FOUND)
                 .body(new LoginErrResponse(
                         ex.getMessage())
+                );
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<RestErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+        log.error(ex.getMessage());
+        String errorMessage = "입력값이 올바르지 않습니다.";
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new RestErrorResponse(
+                        HttpStatus.BAD_REQUEST.value(),
+                        ErrorRespStatus.INVALID_REQUEST,
+                        errorMessage)
                 );
     }
 }
