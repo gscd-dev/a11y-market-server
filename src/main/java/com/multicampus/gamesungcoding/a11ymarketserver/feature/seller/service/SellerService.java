@@ -634,4 +634,38 @@ public class SellerService {
 
         return SellerInfoResponse.fromEntity(sellerRepository.save(seller));
     }
+
+    public SellerOrderSummaryResponse getOrderSummary(String userEmail) {
+        List<Object[]> result = orderItemsRepository.countOrderItemsByStatusGroupedBySellerUserEmail(userEmail);
+
+        long newOrders = 0;
+        long acceptedOrders = 0;
+        long shippingOrders = 0;
+        long completedOrders = 0;
+        long claimedOrders = 0;
+
+        for (Object[] row : result) {
+            OrderItemStatus status = (OrderItemStatus) row[0];
+            Long count = (Long) row[1];
+
+            switch (status) {
+                case ORDERED -> newOrders = count;
+                case ACCEPTED -> acceptedOrders = count;
+                case SHIPPING -> shippingOrders = count;
+                case SHIPPED -> completedOrders = count;
+                case CANCEL_PENDING, RETURN_PENDING -> claimedOrders += count;
+                default -> {
+                    // 기타 상태는 무시
+                }
+            }
+        }
+
+        return new SellerOrderSummaryResponse(
+                newOrders,
+                acceptedOrders,
+                shippingOrders,
+                completedOrders,
+                claimedOrders
+        );
+    }
 }

@@ -71,4 +71,15 @@ public interface OrderItemsRepository extends JpaRepository<OrderItems, UUID> {
     int countAllByProduct_Seller_User_UserEmail_AndOrderItemStatus(String userEmail, OrderItemStatus orderItemStatus);
 
     int countAllByProduct_Seller_User_UserEmail(String userEmail);
+
+    @Query("""
+             SELECT  oi.orderItemStatus, COUNT(oi)
+             FROM OrderItems oi
+             JOIN oi.product p
+             JOIN p.seller s
+             JOIN s.user u
+             WHERE u.userEmail = :userEmail
+             GROUP BY oi.orderItemStatus
+            """)
+    List<Object[]> countOrderItemsByStatusGroupedBySellerUserEmail(@Param("userEmail") String userEmail);
 }

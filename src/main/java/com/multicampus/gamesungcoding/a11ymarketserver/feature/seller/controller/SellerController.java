@@ -145,6 +145,13 @@ public class SellerController {
         return ResponseEntity.ok(responses);
     }
 
+    @GetMapping("/v1/seller/orders/summary")
+    public ResponseEntity<SellerOrderSummaryResponse> getOrderSummary(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        SellerOrderSummaryResponse response = sellerService.getOrderSummary(userDetails.getUsername());
+        return ResponseEntity.ok(response);
+    }
+
     @PatchMapping("/v1/seller/orders/items/{orderItemId}/status")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> updateOrderStatus(
