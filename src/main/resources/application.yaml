@@ -98,6 +98,10 @@ jwt:
   access-token-validity-ms: ${JWT_ACCESS_TOKEN_VALIDITY_MS:1800000}
   refresh-token-validity-ms: ${JWT_REFRESH_TOKEN_VALIDITY_MS:604800000}
 
+toss:
+  payment:
+    secret-key: ${TOSS_PAYMENT_SECRET_KEY}
+
 # Swagger configuration
 springdoc:
   api-docs:
