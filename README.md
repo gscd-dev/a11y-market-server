@@ -10,6 +10,29 @@
 
 ---
 
+## ⚠ 안내
+
+- 본 프로젝트는 현재 Java Spring Boot에서 Kotlin Spring Boot로의 마이그레이션 작업이 진행 중입니다. 따라서 일부 코드가 Java로 작성되어 있지만, 최종적으로는 Kotlin으로 완전히
+  전환될 예정입니다.
+- 마이그레이션 과정에서 발생할 수 있는 일시적인 코드 불일치나 스타일 차이는 양해 부탁드립니다. 프로젝트의 최종 목표는 유지보수성과 개발 생산성을 높이는 것이며, 이를 위해 Kotlin으로의 전환이 필요하다고
+  판단되었습니다.
+- 또한, Multicampus에서 진행한 Oracle DB는 테스트 서버환경에 맞추어 PostgreSQL로 변경될 예정입니다. 이 과정에서 데이터베이스 관련 코드와 설정이 업데이트될 수 있습니다.
+- 프로젝트의 안정성과 기능 구현에 집중하기 위해, 마이그레이션이 완료될 때까지는 Java와 Oracle DB 관련 코드가 병행하여 존재할 수 있습니다. 최종적으로는 모든 코드가 Kotlin과 PostgreSQL로
+  통일될 예정입니다.
+
+### ✅ 작업 예정 사항
+
+- Java → Kotlin 마이그레이션 진행 중
+- Oracle DB → PostgreSQL 마이그레이션 진행 예정
+- JPQL -> QueryDSL로 리팩토링 예정
+- S3(MinIO) 연동 및 이미지 업로드 시 보안을 위해 Pre-signed URL 방식으로 변경 예정
+- JWT 토큰 관리 개선 (Redis 연동 등)
+- Gemini AI 연동 로직 최적화 및 에러 핸들링 강화
+- 코드 스타일 및 일관성 개선
+- 테스트 커버리지 확대 및 안정성 강화
+
+---
+
 ## 📖 목차 (Table of Contents)
 
 - [프로젝트 소개 (Introduction)](#-프로젝트-소개-introduction)
@@ -56,13 +79,13 @@ A11yMarket은 시각 장애인, 고령자 등 디지털 소외 계층을 포함�
 
 ## ✨ 주요 기능 (Key Features)
 
-| 기능                         | 설명                                                                                                     |
-| :--------------------------- | :------------------------------------------------------------------------------------------------------- |
-| **♿ 맞춤형 접근성 프로필**  | 사용자의 시력, 색각 등 신체적 특성에 맞춘 접근성 설정(글자 크기, 대비 등)을 프로필로 관리                |
+| 기능                       | 설명                                                                       |
+|:-------------------------|:-------------------------------------------------------------------------|
+| **♿ 맞춤형 접근성 프로필**        | 사용자의 시력, 색각 등 신체적 특성에 맞춘 접근성 설정(글자 크기, 대비 등)을 프로필로 관리                    |
 | **🤖 AI 상품 분석 (Gemini)** | 상품 등록 시 **Google Gemini 2.0 Flash** 모델이 이미지를 분석하여 시각 장애인을 위한 상세 요약 정보 생성 |
-| **💳 신뢰할 수 있는 결제**   | **Toss Payments** 연동을 통해 안전하고 간편한 결제 및 정산 시스템 구축                                   |
-| **⭐ 투명한 판매자 등급**    | 판매 활동 데이터를 분석하여 판매자 등급을 산정 및 공개, 구매자 신뢰도 확보                               |
-| **🔐 간편 인증**             | JWT 기반 인증 및 **Kakao OAuth2**를 이용한 소셜 로그인 지원                                              |
+| **💳 신뢰할 수 있는 결제**       | **Toss Payments** 연동을 통해 안전하고 간편한 결제 및 정산 시스템 구축                         |
+| **⭐ 투명한 판매자 등급**         | 판매 활동 데이터를 분석하여 판매자 등급을 산정 및 공개, 구매자 신뢰도 확보                              |
+| **🔐 간편 인증**             | JWT 기반 인증 및 **Kakao OAuth2**를 이용한 소셜 로그인 지원                              |
 
 ---
 
@@ -70,8 +93,8 @@ A11yMarket은 시각 장애인, 고령자 등 디지털 소외 계층을 포함�
 
 ### Backend
 
-| 분류          | 기술              | 버전 / 상세                           |
-| :------------ | :---------------- | :------------------------------------ |
+| 분류            | 기술                | 버전 / 상세                               |
+|:--------------|:------------------|:--------------------------------------|
 | **Language**  | Java              | 21 (LTS)                              |
 | **Framework** | Spring Boot       | 3.5.7                                 |
 | **Security**  | Spring Security   | OAuth2 Client (Kakao), JWT            |
@@ -79,16 +102,16 @@ A11yMarket은 시각 장애인, 고령자 등 디지털 소외 계층을 포함�
 | **AI**        | Spring AI         | `spring-ai-openai` (Gemini)           |
 | **Storage**   | S3 (MinIO)        | `spring-cloud-aws-starter-s3`         |
 | **Docs**      | Swagger           | `springdoc-openapi-starter-webmvc-ui` |
-| **Utils**     | Lombok, MapStruct | 코드 간소화 및 매핑                   |
+| **Utils**     | Lombok, MapStruct | 코드 간소화 및 매핑                           |
 
 ### DevOps & Infrastructure
 
-| 분류          | 기술    | 상세                         |
-| :------------ | :------ | :--------------------------- |
+| 분류            | 기술      | 상세                           |
+|:--------------|:--------|:-----------------------------|
 | **Container** | Docker  | Dockerfile, Docker Compose   |
 | **Registry**  | GHCR    | GitHub Container Registry    |
 | **Proxy**     | Traefik | Reverse Proxy, Load Balancer |
-| **Build**     | Gradle  | 빌드 및 의존성 관리          |
+| **Build**     | Gradle  | 빌드 및 의존성 관리                  |
 
 ---
 
@@ -139,30 +162,30 @@ A11yMarket은 시각 장애인, 고령자 등 디지털 소외 계층을 포함�
 
 `.env` 파일을 열어 운영 환경에 맞는 값으로 수정합니다.
 
-| 변수명                            | 설명                                                               | 예시                                                   |
-| --------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------ |
-| **HOST_NAME**                     | 서비스 도메인 (Traefik 라우팅용)                                   | `api.a11ymarket.com`                                   |
-| **DB_URL**                        | Oracle DB 접속 URL                                                 | `jdbc:oracle:thin:@db-host:1521:xe`                    |
-| **DB_USERNAME**                   | DB 사용자명                                                        | `a11y_admin`                                           |
-| **DB_PASSWORD**                   | DB 비밀번호                                                        | `secure_password`                                      |
+| 변수명                               | 설명                                                           | 예시                                                     |
+|-----------------------------------|--------------------------------------------------------------|--------------------------------------------------------|
+| **HOST_NAME**                     | 서비스 도메인 (Traefik 라우팅용)                                       | `api.a11ymarket.com`                                   |
+| **DB_URL**                        | Oracle DB 접속 URL                                             | `jdbc:oracle:thin:@db-host:1521:xe`                    |
+| **DB_USERNAME**                   | DB 사용자명                                                      | `a11y_admin`                                           |
+| **DB_PASSWORD**                   | DB 비밀번호                                                      | `secure_password`                                      |
 | **JPA_SHOW_SQL**                  | JPA SQL 출력 여부 (`true` 또는 `false`)                            | `false`                                                |
 | **JPA_HIBERNATE_DDL_AUTO**        | JPA DDL 자동 생성 옵션 (`none`, `update`, `create`, `create-drop`) | `update`                                               |
-| **GEMINI_API_KEY**                | Google Gemini AI API 키                                            | `AIzaSy...`                                            |
-| **S3_REGION**                     | S3 리전 (MinIO 사용 시 임의 값 가능)                               | `us-east-1`                                            |
-| **S3_ACCESS_KEY**                 | S3 액세스 키                                                       | `minio_access_key`                                     |
-| **S3_SECRET_KEY**                 | S3 시크릿 키                                                       | `minio_secret_key`                                     |
-| **S3_ENDPOINT_URL**               | S3 엔드포인트 URL                                                  | `http://minio-server:9000`                             |
-| **S3_BUCKET_NAME**                | S3 버킷 이름                                                       | `a11y-market-bucket`                                   |
-| **KAKAO_CLIENT_ID**               | 카카오 로그인 REST API 키                                          | `kakao_key...`                                         |
-| **KAKAO_CLIENT_SECRET**           | 카카오 로그인 REST API 시크릿 키                                   | `kakao_secret...`                                      |
-| **KAKAO_REDIRECT_URI**            | 카카오 로그인 리다이렉트 URI                                       | `https://api.a11ymarket.com/auth/kakao/callback`       |
-| **OAUTH_REDIRECT_URI**            | OAuth 공통 리다이렉트 URI                                          | `https://a11ymarket.croffledev.kr/auth/oauth-redirect` |
-| **OAUTH_SIGNUP_REDIRECT_URI**     | OAuth 회원가입 리다이렉트 URI                                      | `https://a11ymarket.croffledev.kr/auth/oauth-signup`   |
+| **GEMINI_API_KEY**                | Google Gemini AI API 키                                       | `AIzaSy...`                                            |
+| **S3_REGION**                     | S3 리전 (MinIO 사용 시 임의 값 가능)                                   | `us-east-1`                                            |
+| **S3_ACCESS_KEY**                 | S3 액세스 키                                                     | `minio_access_key`                                     |
+| **S3_SECRET_KEY**                 | S3 시크릿 키                                                     | `minio_secret_key`                                     |
+| **S3_ENDPOINT_URL**               | S3 엔드포인트 URL                                                 | `http://minio-server:9000`                             |
+| **S3_BUCKET_NAME**                | S3 버킷 이름                                                     | `a11y-market-bucket`                                   |
+| **KAKAO_CLIENT_ID**               | 카카오 로그인 REST API 키                                           | `kakao_key...`                                         |
+| **KAKAO_CLIENT_SECRET**           | 카카오 로그인 REST API 시크릿 키                                       | `kakao_secret...`                                      |
+| **KAKAO_REDIRECT_URI**            | 카카오 로그인 리다이렉트 URI                                            | `https://api.a11ymarket.com/auth/kakao/callback`       |
+| **OAUTH_REDIRECT_URI**            | OAuth 공통 리다이렉트 URI                                           | `https://a11ymarket.croffledev.kr/auth/oauth-redirect` |
+| **OAUTH_SIGNUP_REDIRECT_URI**     | OAuth 회원가입 리다이렉트 URI                                         | `https://a11ymarket.croffledev.kr/auth/oauth-signup`   |
 | **LOGGING_LEVEL_ROOT**            | 전체 로깅 레벨 (`TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`)         | `INFO`                                                 |
-| **CORS_ALLOWED_ORIGINS**          | CORS 허용 출처 (콤마(,)로 다중 출처 구분)                          | `https://a11ymarket.croffledev.kr`                     |
-| **JWT_SECRET_KEY**                | JWT 서명용 비밀키 (32자 이상)                                      | `very_secret_key...`                                   |
-| **JWT_ACCESS_TOKEN_VALIDITY_MS**  | JWT 액세스 토큰 유효 기간 (밀리초 단위)                            | `900000` (15분)                                        |
-| **JWT_REFRESH_TOKEN_VALIDITY_MS** | JWT 리프레시 토큰 유효 기간 (밀리초 단위)                          | `604800000` (7일)                                      |
+| **CORS_ALLOWED_ORIGINS**          | CORS 허용 출처 (콤마(,)로 다중 출처 구분)                                 | `https://a11ymarket.croffledev.kr`                     |
+| **JWT_SECRET_KEY**                | JWT 서명용 비밀키 (32자 이상)                                         | `very_secret_key...`                                   |
+| **JWT_ACCESS_TOKEN_VALIDITY_MS**  | JWT 액세스 토큰 유효 기간 (밀리초 단위)                                    | `900000` (15분)                                         |
+| **JWT_REFRESH_TOKEN_VALIDITY_MS** | JWT 리프레시 토큰 유효 기간 (밀리초 단위)                                   | `604800000` (7일)                                       |
 
 |
 | **TOSS_PAYMENT_SECRET_KEY** | 토스 페이먼츠 시크릿 키 | `sk_test...` |
