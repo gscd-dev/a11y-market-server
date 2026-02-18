@@ -1,83 +1,71 @@
-package com.multicampus.gamesungcoding.a11ymarketserver.common.jwt.service;
+package com.multicampus.gamesungcoding.a11ymarketserver.common.jwt.service
 
-import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataNotFoundException;
-import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.UserNotFoundException;
-import com.multicampus.gamesungcoding.a11ymarketserver.common.jwt.entity.RefreshToken;
-import com.multicampus.gamesungcoding.a11ymarketserver.common.jwt.repository.RefreshTokenRepository;
-import com.multicampus.gamesungcoding.a11ymarketserver.common.properties.JwtProperties;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserRepository;
-import jakarta.transaction.Transactional;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Component;
+import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataNotFoundException
+import com.multicampus.gamesungcoding.a11ymarketserver.common.jwt.entity.RefreshToken
+import com.multicampus.gamesungcoding.a11ymarketserver.common.jwt.repository.RefreshTokenRepository
+import com.multicampus.gamesungcoding.a11ymarketserver.common.properties.JwtProperties
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserRepository
+import jakarta.transaction.Transactional
+import org.slf4j.LoggerFactory
+import org.springframework.security.core.Authentication
+import org.springframework.stereotype.Component
+import java.time.LocalDateTime
+import java.util.*
 
-import java.time.LocalDateTime;
-import java.util.UUID;
-
-@Slf4j
 @Component
-public class RefreshTokenService {
-    private final RefreshTokenRepository refreshTokenRepository;
-    private final UserRepository userRepository;
-    // from JwtProperties
-    private final long refreshTokenValidityMs;
-
-    public RefreshTokenService(RefreshTokenRepository refreshTokenRepository,
-                               UserRepository userRepository,
-                               JwtProperties jwtProperties) {
-        this.refreshTokenRepository = refreshTokenRepository;
-        this.userRepository = userRepository;
-        this.refreshTokenValidityMs = jwtProperties.getRefreshTokenValidityMs();
-    }
+class RefreshTokenService(
+    private val refreshTokenRepository: RefreshTokenRepository,
+    private val userRepository: UserRepository,
+    jwtProperties: JwtProperties
+) {
+    private val log = LoggerFactory.getLogger(this::class.java)
+    private val refreshTokenValidityMs: Long = jwtProperties.refreshTokenValidityMs
 
     @Transactional
-    public String createRefreshToken(Authentication authentication) {
-        String userEmail = authentication.getName();
+    fun createRefreshToken(authentication: Authentication): String {
+        val userEmail = authentication.name
 
-        var userId = userRepository.findByUserEmail(userEmail)
-                .orElseThrow(() -> new DataNotFoundException("User not found with email: " + userEmail))
-                .getUserId();
+        val user = userRepository.findByUserEmail(userEmail)
+            .orElseThrow { DataNotFoundException("User not found with email: $userEmail") }
 
-        var newToken = UUID.randomUUID().toString();
-        var expiryDate = LocalDateTime.now().plusSeconds(refreshTokenValidityMs / 1000);
+        val newToken: String = UUID.randomUUID().toString()
+        val expiryDate = LocalDateTime.now().plusSeconds(refreshTokenValidityMs / 1000)
 
-        refreshTokenRepository.findByUser_UserId(userId)
-                .ifPresentOrElse(
-                        token -> {
-                            log.debug("RefreshTokenService - updateRefreshToken: Updating existing refresh token for userId {}", userId);
-                            token.updateToken(newToken, expiryDate);
-                        },
-                        () -> {
-                            log.debug("RefreshTokenService - updateRefreshToken: Creating new refresh token for userId {}", userId);
-                            var createdToken = refreshTokenRepository.save(RefreshToken.builder()
-                                    .user(userRepository.findById(userId)
-                                            .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId)))
-                                    .token(newToken)
-                                    .expiryDate(expiryDate)
-                                    .build());
-                            log.debug("RefreshTokenService - updateRefreshToken: Created refresh token: {}", createdToken);
-                        }
-                );
-        return newToken;
-    }
-
-    @Transactional
-    public RefreshToken verifyRefreshToken(String token) {
-        var refreshToken = refreshTokenRepository.findByToken(token)
-                .orElseThrow(() -> new DataNotFoundException("Refresh token not found: " + token));
-
-        if (refreshToken.getExpiryDate().isBefore(LocalDateTime.now())) {
-            log.debug("RefreshTokenService.verifyRefreshToken - Refresh token expired");
-            refreshTokenRepository.delete(refreshToken);
-            throw new DataNotFoundException("Refresh token has expired: " + token);
+        val existingToken = refreshTokenRepository.findByUserUserId(user.userId)
+        if (existingToken != null) {
+            log.debug(
+                "RefreshTokenService - updateRefreshToken: Updating existing refresh token for userId {}",
+                user.userId
+            )
+            existingToken.updateToken(newToken, expiryDate)
         } else {
-            return refreshToken;
+            log.debug("Creating new refresh token for userId {}", user.userId)
+
+            val createdToken = refreshTokenRepository.save(
+                RefreshToken(user, newToken, expiryDate)
+            )
+            log.debug("Created refresh token: {}", createdToken)
         }
+
+        return newToken
     }
 
     @Transactional
-    public void deleteRefreshToken(String token) {
-        refreshTokenRepository.deleteByToken(token);
+    fun verifyRefreshToken(token: String): RefreshToken {
+        val refreshToken = refreshTokenRepository.findByToken(token)
+            ?: throw DataNotFoundException("Refresh token not found: $token")
+
+        if (refreshToken.expiryDate.isBefore(LocalDateTime.now())) {
+            log.debug("RefreshTokenService.verifyRefreshToken - Refresh token expired")
+            refreshTokenRepository.delete(refreshToken)
+            throw DataNotFoundException("Refresh token has expired: $token")
+        }
+
+        return refreshToken
     }
 
+    @Transactional
+    fun deleteRefreshToken(token: String) {
+        refreshTokenRepository.deleteByToken(token)
+    }
 }
