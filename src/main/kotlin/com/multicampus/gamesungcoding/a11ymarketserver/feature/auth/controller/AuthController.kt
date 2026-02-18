@@ -26,8 +26,10 @@ class AuthController(
     }
 
     @PostMapping("/v1/auth/login-refresh")
-    fun loginRefresh(@RequestBody dto: RefreshRequest): ResponseEntity<LoginResponse> {
-        return ResponseEntity.ok(authService.loginRefresh(dto.refreshToken))
+    fun loginRefresh(
+        @Valid @RequestBody dto: RefreshRequest
+    ): ResponseEntity<LoginResponse> {
+        return ResponseEntity.ok(authService.loginRefresh(dto.refreshToken!!))
     }
 
     @PostMapping("/v1/auth/logout")
@@ -43,10 +45,10 @@ class AuthController(
 
     @PostMapping("/v1/auth/refresh")
     fun refreshToken(
-        @RequestBody refreshRequest: RefreshRequest
+        @Valid @RequestBody refreshRequest: RefreshRequest
     ): ResponseEntity<JwtResponse> {
         return ResponseEntity.ok(
-            authService.reissueToken(refreshRequest.refreshToken)
+            authService.reissueToken(refreshRequest.refreshToken!!)
         )
     }
 
