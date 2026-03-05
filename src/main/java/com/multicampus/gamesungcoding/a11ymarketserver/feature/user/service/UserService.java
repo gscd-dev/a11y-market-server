@@ -35,27 +35,32 @@ public class UserService {
 
     // 마이페이지 - 회원 정보 조회
     public UserResponse getUserInfo(String userEmail) {
-        return userRepository.findByUserEmail(userEmail)
-                .map(UserResponse::fromEntity)
-                .orElseThrow(() -> new UserNotFoundException("사용자 정보가 존재하지 않습니다."));
+        var user = userRepository.findByUserEmail(userEmail);
+        if (user == null) {
+            throw new UserNotFoundException("사용자 정보가 존재하지 않습니다.");
+        }
+        return UserResponse.fromEntity(user);
     }
 
     // 마이페이지 - 회원 정보 수정
     @Transactional
     public UserResponse updateUserInfo(String userEmail, UserUpdateRequest dto) {
-        return userRepository.findByUserEmail(userEmail)
-                .map(user -> {
-                    user.updateUserInfo(dto);
-                    return user;
-                })
-                .map(UserResponse::fromEntity)
-                .orElseThrow(() -> new UserNotFoundException("사용자 정보가 존재하지 않습니다."));
+        var user = userRepository.findByUserEmail(userEmail);
+        if (user == null) {
+            throw new UserNotFoundException("사용자 정보가 존재하지 않습니다.");
+        }
+
+        user.updateUserInfo(dto);
+        user = userRepository.save(user);
+        return UserResponse.fromEntity(user);
     }
 
     @Transactional
     public void deleteUser(String userEmail, UserDeleteRequest req) {
-        var user = userRepository.findByUserEmail(userEmail)
-                .orElseThrow(() -> new UserNotFoundException("사용자 정보가 존재하지 않습니다."));
+        var user = userRepository.findByUserEmail(userEmail);
+        if (user == null) {
+            throw new UserNotFoundException("사용자 정보가 존재하지 않습니다.");
+        }
 
         var isOauthUser = userOauthLinksRepository.existsByUser(user);
 

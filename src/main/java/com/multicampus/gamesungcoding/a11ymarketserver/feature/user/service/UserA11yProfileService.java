@@ -111,11 +111,10 @@ public class UserA11yProfileService {
 
     // UserEmail -> UserId 변환
     private Users getUserByEmail(String email) {
-        return userRepository.findByUserEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("해당 사용자를 찾을 수 없습니다."));
-    }
-
-    private Integer booleanToInt(Boolean value) {
-        return (value != null && value) ? 1 : 0;
+        var user = userRepository.findByUserEmail(email);
+        if (user == null) {
+            throw new UserNotFoundException("해당 사용자를 찾을 수 없습니다");
+        }
+        return user;
     }
 }

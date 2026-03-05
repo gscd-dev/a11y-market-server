@@ -26,7 +26,7 @@ class RefreshTokenService(
         val userEmail = authentication.name
 
         val user = userRepository.findByUserEmail(userEmail)
-            .orElseThrow { DataNotFoundException("User not found with email: $userEmail") }
+            ?: throw DataNotFoundException("User not found with email: $userEmail")
 
         val newToken: String = UUID.randomUUID().toString()
         val expiryDate = LocalDateTime.now().plusSeconds(refreshTokenValidityMs / 1000)

@@ -23,7 +23,6 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -74,7 +73,7 @@ class AuthServiceTest {
                 "password123!");
 
         given(this.userRepository.findByUserEmail(this.mockEmail))
-                .willReturn(Optional.of(this.mockUser));
+                .willReturn(this.mockUser);
 
         UserDetails mockUserDetails =
                 User.withUsername(this.mockEmail)
@@ -98,8 +97,8 @@ class AuthServiceTest {
         var userRespDTO = this.authService.login(loginDto);
 
         assertThat(userRespDTO).isNotNull();
-        assertThat(userRespDTO.user().userEmail()).isEqualTo(this.mockEmail);
-        assertThat(userRespDTO.user().userRole()).isEqualTo(UserRole.USER);
+        assertThat(userRespDTO.getUser().userEmail()).isEqualTo(this.mockEmail);
+        assertThat(userRespDTO.getUser().userRole()).isEqualTo(UserRole.USER);
     }
 
     @Test
@@ -110,7 +109,7 @@ class AuthServiceTest {
                 "WrongPassword!");
 
         given(this.userRepository.findByUserEmail(this.mockEmail))
-                .willReturn(Optional.of(this.mockUser));
+                .willReturn(this.mockUser);
         given(this.authenticationManager.authenticate(any()))
                 .willThrow(BadCredentialsException.class);
 
@@ -131,7 +130,7 @@ class AuthServiceTest {
 
         given(this.userRepository.existsByUserEmail(this.mockEmail))
                 .willReturn(false);
-        given(this.passwordEncoder.encode(joinDto.userPass()))
+        given(this.passwordEncoder.encode(joinDto.getUserPass()))
                 .willReturn("encodedPassword");
         given(this.userRepository.save(any(Users.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));

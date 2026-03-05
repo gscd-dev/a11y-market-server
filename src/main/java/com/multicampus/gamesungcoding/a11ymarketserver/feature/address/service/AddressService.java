@@ -154,7 +154,10 @@ public class AddressService {
     }
 
     private Users getUserByEmail(String userEmail) {
-        return userRepository.findByUserEmail(userEmail)
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+        var user = userRepository.findByUserEmail(userEmail);
+        if (user == null) {
+            throw new UserNotFoundException("사용자를 찾을 수 없습니다.");
+        }
+        return user;
     }
 }

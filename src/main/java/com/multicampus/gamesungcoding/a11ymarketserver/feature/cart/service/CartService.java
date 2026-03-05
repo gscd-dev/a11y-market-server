@@ -2,7 +2,6 @@ package com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.service;
 
 
 import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataNotFoundException;
-import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.UserNotFoundException;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.dto.*;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.entity.Cart;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.entity.CartItems;
@@ -129,8 +128,10 @@ public class CartService {
     }
 
     private Cart getCartByUserEmail(String userEmail) {
-        Users user = userRepository.findByUserEmail(userEmail)
-                .orElseThrow(() -> new UserNotFoundException("User not found: " + userEmail));
+        Users user = userRepository.findByUserEmail(userEmail);
+        if (user == null) {
+            throw new DataNotFoundException("사용자를 찾을 수 없습니다. userEmail=" + userEmail);
+        }
 
         return cartRepository.findByUser(user)
                 .orElseGet(() -> {

@@ -2,10 +2,7 @@ package com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.common.id.UuidV7;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.data.annotation.CreatedDate;
@@ -16,9 +13,11 @@ import java.util.UUID;
 
 @Entity
 @Getter
+@Builder
 @Table(name = "user_oauth_links")
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserOauthLinks {
     @Id
     @UuidV7

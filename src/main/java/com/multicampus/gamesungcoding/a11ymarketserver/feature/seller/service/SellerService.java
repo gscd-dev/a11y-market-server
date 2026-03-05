@@ -4,7 +4,6 @@ import com.github.f4b6a3.uuid.alt.GUID;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataDuplicatedException;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataNotFoundException;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.InvalidRequestException;
-import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.UserNotFoundException;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.properties.S3StorageProperties;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItemStatus;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItems;
@@ -61,8 +60,10 @@ public class SellerService {
 
     @Transactional
     public SellerApplyResponse applySeller(String userEmail, SellerApplyRequest request) {
-        Users user = userRepository.findByUserEmail(userEmail)
-                .orElseThrow(() -> new UserNotFoundException("사용자 정보가 존재하지 않습니다."));
+        Users user = userRepository.findByUserEmail(userEmail);
+        if (user == null) {
+            throw new DataNotFoundException("사용자 정보를 찾을 수 없습니다.");
+        }
 
         if (sellerRepository.existsByUser_UserId(user.getUserId())) {
             throw new DataDuplicatedException("이미 판매자이거나 판매자 신청 이력이 존재합니다.");
