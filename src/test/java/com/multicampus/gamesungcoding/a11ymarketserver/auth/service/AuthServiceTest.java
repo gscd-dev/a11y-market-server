@@ -97,8 +97,8 @@ class AuthServiceTest {
         var userRespDTO = this.authService.login(loginDto);
 
         assertThat(userRespDTO).isNotNull();
-        assertThat(userRespDTO.getUser().userEmail()).isEqualTo(this.mockEmail);
-        assertThat(userRespDTO.getUser().userRole()).isEqualTo(UserRole.USER);
+        assertThat(userRespDTO.getUser().getUserEmail()).isEqualTo(this.mockEmail);
+        assertThat(userRespDTO.getUser().getUserRole()).isEqualTo(UserRole.USER);
     }
 
     @Test
@@ -137,6 +137,6 @@ class AuthServiceTest {
 
         var userRespDTO = this.authService.join(joinDto);
         assertThat(userRespDTO).isNotNull();
-        assertThat(userRespDTO.userEmail()).isEqualTo(this.mockEmail);
+        assertThat(userRespDTO.getUserEmail()).isEqualTo(this.mockEmail);
     }
 }

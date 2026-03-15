@@ -54,7 +54,7 @@ class AuthServiceIntegrationTest {
         var userResponse = this.authService.login(loginDto);
 
         assertThat(userResponse).isNotNull();
-        assertThat(userResponse.getUser().userEmail()).isEqualTo("user1@example.com");
+        assertThat(userResponse.getUser().getUserEmail()).isEqualTo("user1@example.com");
     }
 
     @Test
