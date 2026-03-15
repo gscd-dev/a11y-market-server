@@ -1,91 +1,83 @@
-package com.multicampus.gamesungcoding.a11ymarketserver.feature.user.service;
+package com.multicampus.gamesungcoding.a11ymarketserver.feature.user.service
 
-import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.InvalidRequestException;
-import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.UserNotFoundException;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.auth.service.AuthService;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItemStatus;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.OrderItemsRepository;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.ProductRepository;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.service.SellerService;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.dto.UserDeleteRequest;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.dto.UserResponse;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.dto.UserUpdateRequest;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity.UserRole;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserOauthLinksRepository;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserRepository;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
+import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.InvalidRequestException
+import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.UserNotFoundException
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.auth.service.AuthService
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItemStatus
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.repository.OrderItemsRepository
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.ProductRepository
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.service.SellerService
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.dto.UserDeleteRequest
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.dto.UserResponse
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.dto.UserUpdateRequest
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity.UserRole
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity.Users
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserOauthLinksRepository
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserRepository
+import org.slf4j.LoggerFactory
+import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
-public class UserService {
+@Transactional(readOnly = true)
+class UserService(
+    private val userRepository: UserRepository,
+    private val passwordEncoder: PasswordEncoder,
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-
-    private final AuthService authService;
-    private final OrderItemsRepository orderItemsRepository;
-    private final ProductRepository productRepository;
-    private final SellerService sellerService;
-    private final UserOauthLinksRepository userOauthLinksRepository;
+    private val authService: AuthService,
+    private val orderItemsRepository: OrderItemsRepository,
+    private val productRepository: ProductRepository,
+    private val sellerService: SellerService,
+    private val userOauthLinksRepository: UserOauthLinksRepository
+) {
+    private val log = LoggerFactory.getLogger(this::class.java)
 
     // 마이페이지 - 회원 정보 조회
-    public UserResponse getUserInfo(String userEmail) {
-        var user = userRepository.findByUserEmail(userEmail);
-        if (user == null) {
-            throw new UserNotFoundException("사용자 정보가 존재하지 않습니다.");
-        }
-        return UserResponse.fromEntity(user);
-    }
+    fun getUserInfo(userEmail: String): UserResponse =
+        UserResponse.fromEntity(getUserByEmail(userEmail))
+
 
     // 마이페이지 - 회원 정보 수정
     @Transactional
-    public UserResponse updateUserInfo(String userEmail, UserUpdateRequest dto) {
-        var user = userRepository.findByUserEmail(userEmail);
-        if (user == null) {
-            throw new UserNotFoundException("사용자 정보가 존재하지 않습니다.");
-        }
-
-        user.updateUserInfo(dto);
-        user = userRepository.save(user);
-        return UserResponse.fromEntity(user);
+    fun updateUserInfo(userEmail: String, dto: UserUpdateRequest): UserResponse {
+        val user = getUserByEmail(userEmail)
+        user.updateUserInfo(dto)
+        return UserResponse.fromEntity(user)
     }
 
     @Transactional
-    public void deleteUser(String userEmail, UserDeleteRequest req) {
-        var user = userRepository.findByUserEmail(userEmail);
-        if (user == null) {
-            throw new UserNotFoundException("사용자 정보가 존재하지 않습니다.");
+    fun deleteUser(userEmail: String, req: UserDeleteRequest) {
+        val user = getUserByEmail(userEmail)
+        val isOauthUser = userOauthLinksRepository.existsByUser(user)
+
+        if (!passwordEncoder.matches(req.userPassword, user.userPass) && !isOauthUser) {
+            throw InvalidRequestException("비밀번호가 일치하지 않습니다.")
         }
 
-        var isOauthUser = userOauthLinksRepository.existsByUser(user);
-
-        if (!passwordEncoder.matches(req.userPassword(), user.getUserPass()) && !isOauthUser) {
-            throw new InvalidRequestException("비밀번호가 일치하지 않습니다.");
-        }
-
-        if (user.getUserRole().equals(UserRole.SELLER)) {
+        if (user.userRole == UserRole.SELLER) {
             // 판매자 회원의 경우 진행 중인 주문이 있는지 확인
             if (orderItemsRepository.existsByProduct_Seller_User_UserEmail_AndOrderItemStatusIn(
                     userEmail,
-                    OrderItemStatus.inProgressStatuses())) {
-                throw new InvalidRequestException("진행 중인 주문이 있어 회원 탈퇴가 불가능합니다.");
+                    OrderItemStatus.inProgressStatuses()
+                )
+            ) {
+                throw InvalidRequestException("진행 중인 주문이 있어 회원 탈퇴가 불가능합니다.")
             }
 
             // 모든 Product를 논리적으로 삭제 처리
             sellerService.deleteProducts(
-                    userEmail,
-                    productRepository.findAllBySeller_User_UserEmail(userEmail));
+                userEmail,
+                productRepository.findAllBySeller_User_UserEmail(userEmail)
+            )
         }
 
-        log.info("Deleting user with email: {}", userEmail);
-
-        authService.logout(userEmail);
-
-        userRepository.delete(user);
+        log.info("Deleting user with email: {}", userEmail)
+        authService.logout(userEmail)
+        userRepository.delete(user)
     }
+
+    private fun getUserByEmail(userEmail: String): Users =
+        userRepository.findByUserEmail(userEmail)
+            ?: throw UserNotFoundException("사용자 정보가 존재하지 않습니다.")
 }
