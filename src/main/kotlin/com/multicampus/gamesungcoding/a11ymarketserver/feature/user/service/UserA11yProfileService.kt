@@ -1,120 +1,113 @@
-package com.multicampus.gamesungcoding.a11ymarketserver.feature.user.service;
+package com.multicampus.gamesungcoding.a11ymarketserver.feature.user.service
 
-import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataNotFoundException;
-import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.InvalidRequestException;
-import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.UserNotFoundException;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.dto.UserA11yProfileReq;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.dto.UserA11yProfileResponse;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity.*;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserA11yProfileRepository;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.UUID;
+import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataNotFoundException
+import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.InvalidRequestException
+import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.UserNotFoundException
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.dto.UserA11yProfileReq
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.dto.UserA11yProfileResponse
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity.A11yProfileInfo
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity.UserA11yProfile
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.entity.Users
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserA11yProfileRepository
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserRepository
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.util.*
 
 @Service
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class UserA11yProfileService {
+class UserA11yProfileService(
+    private val profileRepository: UserA11yProfileRepository,
+    private val userRepository: UserRepository
 
-    private final UserA11yProfileRepository profileRepository;
-    private final UserRepository userRepository;
-
+) {
     // 프로필 목록 조회
-    public List<UserA11yProfileResponse> getMyProfiles(String userEmail) {
-        Users user = getUserByEmail(userEmail);
-        var list = profileRepository.findAllByUserOrderByCreatedAtAsc(user);
-        return list.stream()
-                .map(UserA11yProfileResponse::fromEntity)
-                .toList();
+    fun getMyProfiles(userEmail: String): List<UserA11yProfileResponse> {
+        val user = getUserByEmail(userEmail)
+        val list: List<UserA11yProfile> = profileRepository.findAllByUserOrderByCreatedAtAsc(user)
+        return list.map { UserA11yProfileResponse.fromEntity(it) }.toList()
     }
 
 
     // 프로필 생성
     @Transactional
-    public UserA11yProfileResponse createProfile(String userEmail, UserA11yProfileReq dto) {
-        Users user = getUserByEmail(userEmail);
+    fun createProfile(userEmail: String, dto: UserA11yProfileReq): UserA11yProfileResponse {
+        val user = getUserByEmail(userEmail)
 
         // 프로필 이름 중복 체크
-        if (profileRepository.existsByUserAndProfileInfo_ProfileName(user, dto.profileName())) {
-            throw new InvalidRequestException("이미 존재하는 프로필 이름입니다.");
+        if (profileRepository.existsByUserAndProfileInfoProfileName(user, dto.profileName)) {
+            throw InvalidRequestException("이미 존재하는 프로필 이름입니다.")
         }
 
-        UserA11yProfile profile = UserA11yProfile.builder()
-                .user(user)
-                .profileInfo(
-                        A11yProfileInfo.builder()
-                                .profileName(dto.profileName())
-                                .description(dto.description())
-                                .contrastLevel(dto.contrastLevel())
-                                .textSizeLevel(dto.textSizeLevel())
-                                .textSpacingLevel(dto.textSpacingLevel())
-                                .lineHeightLevel(dto.lineHeightLevel())
-                                .textAlign(dto.textAlign())
-                                .screenReader(dto.screenReader())
-                                .smartContrast(dto.smartContrast())
-                                .highlightLinks(dto.highlightLinks())
-                                .cursorHighlight(dto.cursorHighlight())
-                                .build()
-                )
-                .build();
+        val profile = UserA11yProfile.builder()
+            .user(user)
+            .profileInfo(
+                A11yProfileInfo.builder()
+                    .profileName(dto.profileName)
+                    .description(dto.description)
+                    .contrastLevel(dto.contrastLevel)
+                    .textSizeLevel(dto.textSizeLevel)
+                    .textSpacingLevel(dto.textSpacingLevel)
+                    .lineHeightLevel(dto.lineHeightLevel)
+                    .textAlign(dto.textAlign)
+                    .screenReader(dto.screenReader)
+                    .smartContrast(dto.smartContrast)
+                    .highlightLinks(dto.highlightLinks)
+                    .cursorHighlight(dto.cursorHighlight)
+                    .build()
+            )
+            .build()
 
-        return UserA11yProfileResponse.fromEntity(profileRepository.save(profile));
+        return UserA11yProfileResponse.fromEntity(profileRepository.save(profile))
     }
 
     // 프로필 수정
     @Transactional
-    public void updateProfile(String userEmail, UUID profileId, UserA11yProfileReq dto) {
-        Users user = getUserByEmail(userEmail);
+    fun updateProfile(userEmail: String, profileId: UUID, dto: UserA11yProfileReq) {
+        val user = getUserByEmail(userEmail)
 
-        UserA11yProfile profile = profileRepository
-                .findByProfileIdAndUser(profileId, user)
-                .orElseThrow(() -> new DataNotFoundException("해당 접근성 프로필을 찾을 수 없습니다."));
+        val profile: UserA11yProfile = profileRepository.findByProfileIdAndUser(profileId, user)
+            ?: throw DataNotFoundException("해당 접근성 프로필을 찾을 수 없습니다.")
 
         // 프로필 이름 중복 체크
-        if (!profile.getProfileInfo().getProfileName().equals(dto.profileName())
-                && profileRepository.existsByUserAndProfileInfo_ProfileName(user, dto.profileName())) {
-            throw new InvalidRequestException("이미 존재하는 프로필 이름입니다.");
+        if (profile.profileInfo.profileName != dto.profileName &&
+            profileRepository.existsByUserAndProfileInfoProfileName(user, dto.profileName)
+        ) {
+            throw InvalidRequestException("이미 존재하는 프로필 이름입니다.")
         }
 
-        var info = A11yProfileInfo.builder()
-                .profileName(dto.profileName())
-                .description(dto.description())
-                .contrastLevel(dto.contrastLevel())
-                .textSizeLevel(dto.textSizeLevel())
-                .textSpacingLevel(dto.textSpacingLevel())
-                .lineHeightLevel(dto.lineHeightLevel())
-                .textAlign(dto.textAlign())
-                .screenReader(dto.screenReader())
-                .smartContrast(dto.smartContrast())
-                .highlightLinks((dto.highlightLinks()))
-                .cursorHighlight((dto.cursorHighlight()))
-                .build();
+        val info = A11yProfileInfo.builder()
+            .profileName(dto.profileName)
+            .description(dto.description)
+            .contrastLevel(dto.contrastLevel)
+            .textSizeLevel(dto.textSizeLevel)
+            .textSpacingLevel(dto.textSpacingLevel)
+            .lineHeightLevel(dto.lineHeightLevel)
+            .textAlign(dto.textAlign)
+            .screenReader(dto.screenReader)
+            .smartContrast(dto.smartContrast)
+            .highlightLinks(dto.highlightLinks)
+            .cursorHighlight(dto.cursorHighlight)
+            .build()
 
-        profile.update(info);
+        profile.update(info)
     }
 
     // 프로필 삭제
     @Transactional
-    public void deleteProfile(String userEmail, UUID profileId) {
-        Users user = getUserByEmail(userEmail);
+    fun deleteProfile(userEmail: String, profileId: UUID) {
+        val deleted = profileRepository.deleteByProfileIdAndUser(
+            profileId = profileId,
+            user = getUserByEmail(userEmail)
+        )
 
-        Long deleted = profileRepository.deleteByProfileIdAndUser(profileId, user);
-
-        if (deleted == 0) {
-            throw new DataNotFoundException("삭제할 수 있는 프로필이 없습니다.");
+        if (deleted == 0L) {
+            throw DataNotFoundException("삭제할 수 있는 프로필이 없습니다.")
         }
     }
 
     // UserEmail -> UserId 변환
-    private Users getUserByEmail(String email) {
-        var user = userRepository.findByUserEmail(email);
-        if (user == null) {
-            throw new UserNotFoundException("해당 사용자를 찾을 수 없습니다");
-        }
-        return user;
-    }
+    private fun getUserByEmail(email: String): Users =
+        userRepository.findByUserEmail(email)
+            ?: throw UserNotFoundException("해당 사용자를 찾을 수 없습니다")
 }

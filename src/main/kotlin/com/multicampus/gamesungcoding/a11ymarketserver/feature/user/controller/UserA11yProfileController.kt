@@ -22,7 +22,7 @@ class UserA11yProfileController(
     @GetMapping("/profiles")
     fun getMyProfiles(
         @AuthenticationPrincipal userDetails: UserDetails
-    ): MutableList<UserA11yProfileResponse> =
+    ): List<UserA11yProfileResponse> =
         profileService.getMyProfiles(userDetails.username)
 
 
@@ -48,7 +48,7 @@ class UserA11yProfileController(
         @PathVariable profileId: String,
         @Valid @RequestBody req: @Valid UserA11yProfileReq
     ) {
-        val id: UUID? = try {
+        val id: UUID = try {
             UUID.fromString(profileId)
         } catch (_: IllegalArgumentException) {
             throw InvalidRequestException("잘못된 UUID 형식입니다.")
