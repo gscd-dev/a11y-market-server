@@ -93,7 +93,7 @@ public class OrderService {
     // 주문 생성
     @Transactional
     public OrderResponse createOrder(String userEmail, OrderCreateRequest req) {
-        Addresses address = addressRepository.findByAddressIdAndUser_UserEmail(
+        Addresses address = addressRepository.findByAddressIdAndUserUserEmail(
                         UUID.fromString(req.addressId()),
                         userEmail)
                 .orElseThrow(() -> new DataNotFoundException("주소를 찾을 수 없습니다."));

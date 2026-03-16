@@ -173,7 +173,7 @@ class UserServiceIntegrationTest {
 
         Assertions.assertEquals(
                 0,
-                this.addressRepository.findAllByUser_UserEmail(userEmail).size());
+                this.addressRepository.findAllByUserUserEmail(userEmail).size());
 
         // 주문 및 주문 상품은 기록이므로, 삭제되지 않아야 함
         Assertions.assertEquals(1, this.ordersRepository.count());
