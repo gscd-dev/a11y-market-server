@@ -169,7 +169,7 @@ class UserServiceIntegrationTest {
         // 사용자, 장바구니, 주소가 모두 삭제되었는지 확인
         Assertions.assertFalse(this.userRepository.findById(userId).isPresent());
 
-        Assertions.assertFalse(this.cartRepository.findByUser_UserId(userId).isPresent());
+        Assertions.assertFalse(this.cartRepository.findByUserUserId(userId).isPresent());
 
         Assertions.assertEquals(
                 0,

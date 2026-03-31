@@ -48,7 +48,7 @@ class CartService(
         val productId = UUID.fromString(req.productId)
         val productProxy = productRepository.getReferenceById(productId)
 
-        val cartItem = cartItemRepository.findByCartAndProduct_ProductId(cart, productId)?.apply {
+        val cartItem = cartItemRepository.findByCartAndProductProductId(cart, productId)?.apply {
             changeQuantity(this.quantity + req.quantity)
         } ?: CartItems.builder()
             .cart(cart)

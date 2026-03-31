@@ -77,7 +77,7 @@ public class OrderService {
         }
 
         int totalAmount = orderItems.stream()
-                .mapToInt(item -> item.productPrice() * item.quantity())
+                .mapToInt(item -> item.productPrice * item.quantity)
                 .sum();
 
         int shippingFee = 0;
