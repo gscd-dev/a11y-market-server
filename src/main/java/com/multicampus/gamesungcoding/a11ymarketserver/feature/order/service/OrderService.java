@@ -7,6 +7,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.address.repositor
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.dto.CartItemDto;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.entity.Cart;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.entity.CartItems;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.mapper.CartMapperKt;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.repository.CartItemRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.dto.*;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.order.entity.OrderItemStatus;
@@ -25,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 // 결제 정보 조회
@@ -51,7 +53,7 @@ public class OrderService {
 
             var cartItems = cartItemRepository.findAllById(itemIds);
             for (var item : cartItems) {
-                if (item.getProduct().getProductStock() < item.getQuantity()) {
+                if (Objects.requireNonNull(item.getProduct()).getProductStock() < item.getQuantity()) {
                     throw new InvalidRequestException("재고가 부족한 상품이 포함되어 있습니다.");
                 }
 
@@ -59,7 +61,7 @@ public class OrderService {
                     throw new InvalidRequestException("구매할 수 없는 상품이 포함되어 있습니다.");
                 }
 
-                orderItems.add(CartItemDto.fromEntity(item));
+                orderItems.add(CartMapperKt.toItemDto(item));
             }
         } else {
             var orderItemReq = req.getDirectOrderItem();
@@ -77,7 +79,7 @@ public class OrderService {
         }
 
         int totalAmount = orderItems.stream()
-                .mapToInt(item -> item.productPrice * item.quantity)
+                .mapToInt(item -> item.getProductPrice() * item.getQuantity())
                 .sum();
 
         int shippingFee = 0;
@@ -94,9 +96,13 @@ public class OrderService {
     @Transactional
     public OrderResponse createOrder(String userEmail, OrderCreateRequest req) {
         Addresses address = addressRepository.findByAddressIdAndUserUserEmail(
-                        UUID.fromString(req.addressId()),
-                        userEmail)
-                .orElseThrow(() -> new DataNotFoundException("주소를 찾을 수 없습니다."));
+                UUID.fromString(req.addressId()),
+                userEmail
+        );
+
+        if (address == null) {
+            throw new DataNotFoundException("주소를 찾을 수 없습니다.");
+        }
 
         Orders order = ordersRepository.save(Orders.builder()
                 .userEmail(address.getUser().getUserEmail())
@@ -118,7 +124,7 @@ public class OrderService {
             var cartItems = this.getCartItemsByIds(userEmail, req.cartItemIds());
 
             for (var cartItem : cartItems) {
-                this.validateProduct(cartItem.getProduct(), cartItem.getQuantity());
+                this.validateProduct(Objects.requireNonNull(cartItem.getProduct()), cartItem.getQuantity());
 
                 OrderItems item = createOrderItemFromProduct(order, cartItem.getProduct(), cartItem.getQuantity());
                 orderItemsList.add(item);
