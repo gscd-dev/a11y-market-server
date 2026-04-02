@@ -4,6 +4,8 @@ import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataNotF
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.dto.*
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.entity.Cart
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.entity.CartItems
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.mapper.toItemDto
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.mapper.toUpdateResponse
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.repository.CartItemRepository
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.cart.repository.CartRepository
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.ProductRepository
@@ -26,7 +28,7 @@ class CartService(
     @Transactional(readOnly = true)
     fun getCartItems(userEmail: String): CartItemListResponse {
         val cart = getCartByUserEmail(userEmail)
-        val list = cartItemRepository.findAllByCart(cart).map { CartItemDto.fromEntity(it) }
+        val list = cartItemRepository.findAllByCart(cart).map { it.toItemDto() }
         val total = list.sumOf { it.quantity * it.productPrice }
 
         val groupedList = list.groupBy { it.sellerName }
@@ -50,13 +52,9 @@ class CartService(
 
         val cartItem = cartItemRepository.findByCartAndProductProductId(cart, productId)?.apply {
             changeQuantity(this.quantity + req.quantity)
-        } ?: CartItems.builder()
-            .cart(cart)
-            .product(productProxy)
-            .quantity(req.quantity)
-            .build()
+        } ?: CartItems(cart, productProxy, req.quantity)
 
-        return CartItemUpdatedResponse.fromEntity(cartItemRepository.save(cartItem))
+        return cartItemRepository.save(cartItem).toUpdateResponse()
     }
 
     @Transactional
@@ -72,7 +70,7 @@ class CartService(
 
         cartItem.changeQuantity(quantity)
 
-        return CartItemUpdatedResponse.fromEntity(cartItemRepository.save(cartItem))
+        return cartItemRepository.save(cartItem).toUpdateResponse()
     }
 
     @Transactional
@@ -99,9 +97,7 @@ class CartService(
         return cartRepository.findByUser(user) ?: run {
             log.debug("장바구니가 없어 새로 생성합니다. userEmail={}", userEmail)
             cartRepository.save(
-                Cart.builder()
-                    .user(user)
-                    .build()
+                Cart(user)
             )
         }
     }

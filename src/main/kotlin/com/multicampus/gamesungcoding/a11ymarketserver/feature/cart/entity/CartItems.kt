@@ -31,7 +31,7 @@ class CartItems
     @Id
     @UuidV7
     @Column(length = 16, updatable = false, nullable = false)
-    private var cartItemId: UUID? = null // 장바구니 아이템 PK
+    var cartItemId: UUID? = null // 장바구니 아이템 PK
 
     fun changeQuantity(quantity: Int) {
         require(quantity >= 1) { "quantity must be >= 1" }
