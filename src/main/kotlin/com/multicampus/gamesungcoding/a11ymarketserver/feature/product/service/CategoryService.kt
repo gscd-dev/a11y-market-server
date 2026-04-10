@@ -1,48 +1,37 @@
-package com.multicampus.gamesungcoding.a11ymarketserver.feature.product.service;
+package com.multicampus.gamesungcoding.a11ymarketserver.feature.product.service
 
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.CategoryResponse;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.CategoryRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.CategoryResponse
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.CategoryRepository
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
-@RequiredArgsConstructor
-public class CategoryService {
-    private final CategoryRepository categoryRepository;
+class CategoryService(
+    private val categoryRepository: CategoryRepository
+) {
 
-    public List<CategoryResponse> getAllCategories() {
-        var categories = categoryRepository.findAll();
+    @Transactional(readOnly = true)
+    fun getAllCategories(): List<CategoryResponse> {
+        val categories = categoryRepository.findAll()
 
-        Map<UUID, CategoryResponse> categoryMap = categories.stream()
-                .map(CategoryResponse::fromEntity)
-                .collect(Collectors.toMap(
-                        CategoryResponse::getCategoryId,
-                        categoryResponse -> categoryResponse
-                ));
+        val categoryMap = categories.map { CategoryResponse.fromEntity(it) }
+            .associateBy { it.categoryId }
 
-        List<CategoryResponse> roots = new ArrayList<>();
+        val roots = ArrayList<CategoryResponse>()
 
-        for (var category : categories) {
-            var currentDto = categoryMap.get(category.getCategoryId());
+        for (category in categories) {
+            val currentDto = categoryMap[category.categoryId] ?: continue
 
-            if (category.getParentCategory() == null) {
-                roots.add(currentDto);
+            if (category.parentCategory == null) {
+                roots.add(currentDto)
             } else {
-                var parentId = category.getParentCategory().getCategoryId();
-                var parentDto = categoryMap.get(parentId);
+                val parentId = category.parentCategory.categoryId
+                val parentDto = categoryMap[parentId]
 
-                if (parentDto != null) {
-                    parentDto.addSubCategory(currentDto);
-                }
+                parentDto?.addSubCategory(currentDto)
             }
         }
 
-        return roots;
+        return roots
     }
 }
