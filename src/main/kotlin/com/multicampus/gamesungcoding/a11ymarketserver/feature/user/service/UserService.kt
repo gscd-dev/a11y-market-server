@@ -87,7 +87,7 @@ class UserService(
             // 모든 Product를 논리적으로 삭제 처리
             sellerService.deleteProducts(
                 userEmail,
-                productRepository.findAllBySeller_User_UserEmail(userEmail)
+                productRepository.findAllBySellerUserUserEmail(userEmail)
             )
         }
 

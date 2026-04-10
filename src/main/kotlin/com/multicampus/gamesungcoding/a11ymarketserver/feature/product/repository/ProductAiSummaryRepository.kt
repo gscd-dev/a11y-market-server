@@ -1,11 +1,12 @@
-package com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository;
+package com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository
 
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.Product;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.ProductAiSummary;
-import org.springframework.data.jpa.repository.JpaRepository;
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.Product
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.ProductAiSummary
+import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.stereotype.Repository
+import java.util.*
 
-import java.util.UUID;
-
-public interface ProductAiSummaryRepository extends JpaRepository<ProductAiSummary, UUID> {
-    ProductAiSummary findAllByProduct(Product product);
+@Repository
+interface ProductAiSummaryRepository : JpaRepository<ProductAiSummary, UUID> {
+    fun findAllByProduct(product: Product): ProductAiSummary?
 }

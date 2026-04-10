@@ -217,7 +217,7 @@ class UserControllerIntegrationTest {
         Assertions.assertThat(deletedSeller).isEmpty();
 
         // 상품 정보는 논리 삭제 되었는지 확인
-        var products = this.productRepository.findAllBySeller_User_UserEmail(this.mockSeller.getUserEmail());
+        var products = this.productRepository.findAllBySellerUserUserEmail(this.mockSeller.getUserEmail());
         for (var product : products) {
             Assertions.assertThat(product.getProductStatus()).isEqualTo(ProductStatus.DELETED);
         }

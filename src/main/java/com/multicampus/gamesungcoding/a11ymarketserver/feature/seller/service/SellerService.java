@@ -143,7 +143,7 @@ public class SellerService {
 
         var pageable = PageRequest.of(req.page(), req.size());
 
-        var products = productRepository.findBySeller_SellerId(sellerId, pageable);
+        var products = productRepository.findBySellerSellerId(sellerId, pageable);
 
         return products.map(ProductInquireResponse::fromEntity).toList();
     }
