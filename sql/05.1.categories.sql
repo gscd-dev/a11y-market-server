@@ -1,7 +1,8 @@
-CREATE TABLE categories (
-   category_id   RAW(16) PRIMARY KEY,
-   parent_cat_id RAW(16),
-   category_name VARCHAR2(100) NOT NULL,
-   CONSTRAINT fk_parent_cat FOREIGN KEY ( parent_cat_id )
-      REFERENCES categories ( category_id )
+CREATE TABLE categories
+(
+    category_id   UUID PRIMARY KEY,
+    parent_cat_id UUID,
+    category_name VARCHAR(100) NOT NULL,
+    CONSTRAINT fk_parent_cat FOREIGN KEY (parent_cat_id)
+        REFERENCES categories (category_id)
 );
