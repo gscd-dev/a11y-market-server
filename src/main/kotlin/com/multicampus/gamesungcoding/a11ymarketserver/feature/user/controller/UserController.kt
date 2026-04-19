@@ -1,6 +1,7 @@
 package com.multicampus.gamesungcoding.a11ymarketserver.feature.user.controller
 
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.dto.UserDeleteRequest
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.dto.UserPWUpdateRequest
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.dto.UserResponse
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.dto.UserUpdateRequest
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.service.UserService
@@ -35,7 +36,7 @@ class UserController(
     @PatchMapping("/me/password")
     fun updatePassword(
         @AuthenticationPrincipal userDetails: UserDetails,
-        @Valid @RequestBody request: UserUpdateRequest,
+        @Valid @RequestBody request: UserPWUpdateRequest,
     ) {
         userService.updateUserPassword(userDetails.username, request)
     }
