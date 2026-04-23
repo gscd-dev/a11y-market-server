@@ -213,7 +213,7 @@ class UserControllerIntegrationTest {
         Assertions.assertThat(deletedUser).isEmpty();
 
         // 판매자 정보도 삭제되었는지 확인
-        var deletedSeller = this.sellerRepository.findByUser_UserEmail(this.mockSeller.getUserEmail());
+        var deletedSeller = this.sellerRepository.findByUserUserEmail(this.mockSeller.getUserEmail());
         Assertions.assertThat(deletedSeller).isEmpty();
 
         // 상품 정보는 논리 삭제 되었는지 확인
