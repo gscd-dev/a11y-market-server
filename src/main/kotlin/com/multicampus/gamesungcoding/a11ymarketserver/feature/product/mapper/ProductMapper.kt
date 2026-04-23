@@ -38,7 +38,7 @@ fun Product.toResponse(): ProductResponse {
 }
 
 
-fun Product.toDetailResponse(images: List<ProductImages>, summary: ProductAiSummary?): ProductDetailResponse {
+fun Product.toDetailResponse(images: List<ProductImages>?, summary: ProductAiSummary?): ProductDetailResponse {
     val seller = this.seller
         ?: throw DataNotFoundException("Seller ID is missing")
     val category = this.category
@@ -55,7 +55,7 @@ fun Product.toDetailResponse(images: List<ProductImages>, summary: ProductAiSumm
         productStatus,
         productDescription,
         productStock,
-        images.map { it.toResponse() },
+        images?.map { it.toResponse() },
         category.categoryId ?: throw DataNotFoundException("CategoryId is missing"),
         category.categoryName,
         summary?.summaryText,
