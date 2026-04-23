@@ -16,7 +16,7 @@ data class ProductDetailResponse(
     val productStatus: ProductStatus,
     val productDescription: String,
     val productStock: Int,
-    val productImages: List<ProductImageResponse>,
+    val productImages: List<ProductImageResponse>?,
     val categoryId: UUID,
     val categoryName: String,
     val summaryText: String? = null,
