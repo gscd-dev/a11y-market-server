@@ -201,7 +201,7 @@ class UserServiceIntegrationTest {
 
         // 사용자, 판매자가 모두 삭제되었는지 확인
         Assertions.assertFalse(this.userRepository.findById(userId).isPresent());
-        Assertions.assertFalse(this.sellerRepository.findByUser_UserEmail(userEmail).isPresent());
+        Assertions.assertFalse(this.sellerRepository.findByUserUserEmail(userEmail).isPresent());
 
         // 상품은 삭제되지 않고, 상태가 DELETED로 변경되었는지 확인
         var deletedProduct = this.productRepository.findById(this.mockProduct.getProductId());

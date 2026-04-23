@@ -4,6 +4,7 @@ import com.github.f4b6a3.uuid.alt.GUID;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataDuplicatedException;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.DataNotFoundException;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.InvalidRequestException;
+import com.multicampus.gamesungcoding.a11ymarketserver.common.exception.UserNotFoundException;
 import com.multicampus.gamesungcoding.a11ymarketserver.common.properties.S3StorageProperties;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.ProductAiSummary;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.ProductImages;
@@ -63,11 +64,11 @@ public class SellerService {
     @Transactional
     public SellerApplyResponse applySeller(String userEmail, SellerApplyRequest request) {
         Users user = userRepository.findByUserEmail(userEmail);
-        if (user == null) {
-            throw new DataNotFoundException("사용자 정보를 찾을 수 없습니다.");
+        if (user == null || user.getUserId() == null) {
+            throw new UserNotFoundException("사용자 정보를 찾을 수 없습니다.");
         }
 
-        if (sellerRepository.existsByUser_UserId(user.getUserId())) {
+        if (sellerRepository.existsByUserUserId(user.getUserId())) {
             throw new DataDuplicatedException("이미 판매자이거나 판매자 신청 이력이 존재합니다.");
         }
 
@@ -88,8 +89,10 @@ public class SellerService {
                                                  SellerProductRegisterRequest request,
                                                  List<MultipartFile> images) {
 
-        Seller seller = sellerRepository.findByUser_UserEmail(userEmail)
-                .orElseThrow(() -> new DataNotFoundException("판매자 정보가 존재하지 않습니다. 먼저 판매자 가입 신청을 완료하세요."));
+        Seller seller = sellerRepository.findByUserUserEmail(userEmail);
+        if (seller == null) {
+            throw new DataNotFoundException("판매자 정보가 존재하지 않습니다. 먼저 판매자 가입 신청을 완료하세요.")
+        }
 
         if (!seller.getSellerSubmitStatus().isApproved()) {
             throw new InvalidRequestException("판매자 승인 완료 후 상품 등록이 가능합니다.");
@@ -97,15 +100,7 @@ public class SellerService {
 
         Categories category = categoryRepository.getReferenceById(UUID.fromString(request.categoryId()));
 
-        Product product = Product.builder()
-                .seller(seller)
-                .category(category)
-                .productName(request.productName())
-                .productDescription(request.productDescription())
-                .productPrice(request.productPrice())
-                .productStock(request.productStock())
-                .productStatus(ProductStatus.PENDING)
-                .build();
+        Product product = new Product(seller, category, request.productPrice(), request.productStock(), request.productName(), request.productDescription(), ProductStatus.PENDING);
 
 
         product = productRepository.save(product);
@@ -138,8 +133,10 @@ public class SellerService {
     @Transactional(readOnly = true)
     public List<ProductInquireResponse> getMyProducts(String userEmail, SellerInquireProductRequest req) {
 
-        Seller seller = sellerRepository.findByUser_UserEmail(userEmail)
-                .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
+        Seller seller = sellerRepository.findByUserUserEmail(userEmail);
+        if (seller == null) {
+            throw new DataNotFoundException("판매자 정보를 찾을 수 없습니다.")
+        }
 
         UUID sellerId = seller.getSellerId();
 
@@ -156,8 +153,10 @@ public class SellerService {
                                     SellerProductUpdateRequest request,
                                     List<MultipartFile> images) {
 
-        Seller seller = sellerRepository.findByUser_UserEmail(userEmail)
-                .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
+        Seller seller = sellerRepository.findByUserUserEmail(userEmail);
+        if (seller == null) {
+            throw new DataNotFoundException("판매자 정보를 찾을 수 없습니다.")
+        }
 
         if (!seller.getSellerSubmitStatus().isApproved()) {
             throw new InvalidRequestException("판매자 승인 완료 후 상품을 수정할 수 있습니다.");
@@ -222,8 +221,10 @@ public class SellerService {
     @Transactional
     public void deleteProduct(String userEmail, UUID productId) {
 
-        Seller seller = sellerRepository.findByUser_UserEmail(userEmail)
-                .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
+        Seller seller = sellerRepository.findByUserUserEmail(userEmail);
+        if (seller == null) {
+            throw new DataNotFoundException("판매자 정보를 찾을 수 없습니다.")
+        }
 
         if (!seller.getSellerSubmitStatus().isApproved()) {
             throw new InvalidRequestException("판매자 승인 완료 후 상품을 삭제할 수 있습니다.");
@@ -244,8 +245,10 @@ public class SellerService {
     @Transactional
     public void deleteProducts(String userEmail, List<Product> products) {
 
-        Seller seller = sellerRepository.findByUser_UserEmail(userEmail)
-                .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
+        Seller seller = sellerRepository.findByUserUserEmail(userEmail);
+        if (seller == null) {
+            throw new DataNotFoundException("판매자 정보를 찾을 수 없습니다.")
+        }
 
         if (!seller.getSellerSubmitStatus().isApproved()) {
             throw new InvalidRequestException("판매자 승인 완료 후 상품을 삭제할 수 있습니다.");
@@ -264,8 +267,10 @@ public class SellerService {
     @Transactional
     public ProductDTO updateProductStock(String userEmail, UUID productId, SellerProductStockUpdateRequest request) {
 
-        Seller seller = sellerRepository.findByUser_UserEmail(userEmail)
-                .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
+        Seller seller = sellerRepository.findByUserUserEmail(userEmail);
+        if (seller == null) {
+            throw new DataNotFoundException("판매자 정보를 찾을 수 없습니다.")
+        }
 
         if (!seller.getSellerSubmitStatus().isApproved()) {
             throw new InvalidRequestException("판매자 승인 완료 후 재고를 수정할 수 있습니다.");
@@ -289,8 +294,10 @@ public class SellerService {
                                                         Integer page,
                                                         Integer size) {
 
-        Seller seller = sellerRepository.findByUser_UserEmail(userEmail)
-                .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
+        Seller seller = sellerRepository.findByUserUserEmail(userEmail);
+        if (seller == null) {
+            throw new DataNotFoundException("판매자 정보를 찾을 수 없습니다.")
+        }
 
         if (!seller.getSellerSubmitStatus().isApproved()) {
             throw new InvalidRequestException("승인된 판매자만 주문 목록을 조회할 수 있습니다.");
@@ -338,8 +345,10 @@ public class SellerService {
                                       UUID orderItemId,
                                       SellerOrderItemsStatusUpdateRequest req) {
 
-        Seller seller = sellerRepository.findByUser_UserEmail(userEmail)
-                .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
+        Seller seller = sellerRepository.findByUserUserEmail(userEmail);
+        if (seller == null) {
+            throw new DataNotFoundException("판매자 정보를 찾을 수 없습니다.")
+        }
         if (!seller.getSellerSubmitStatus().isApproved()) {
             throw new InvalidRequestException("승인된 판매자만 주문 상태를 변경할 수 있습니다.");
         }
@@ -438,8 +447,10 @@ public class SellerService {
 
     @Transactional
     public void processOrderClaim(String userEmail, UUID orderItemId, SellerOrderClaimProcessRequest request) {
-        Seller seller = sellerRepository.findByUser_UserEmail(userEmail)
-                .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
+        Seller seller = sellerRepository.findByUserUserEmail(userEmail);
+        if (seller == null) {
+            throw new DataNotFoundException("판매자 정보를 찾을 수 없습니다.")
+        }
 
         if (!seller.getSellerSubmitStatus().isApproved()) {
             throw new InvalidRequestException("승인된 판매자만 취소/반품 처리가 가능합니다.");
@@ -499,8 +510,10 @@ public class SellerService {
     @Transactional(readOnly = true)
     public List<SellerOrderItemResponse> getOrderClaims(String userEmail) {
 
-        Seller seller = sellerRepository.findByUser_UserEmail(userEmail)
-                .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
+        Seller seller = sellerRepository.findByUserUserEmail(userEmail);
+        if (seller == null) {
+            throw new DataNotFoundException("판매자 정보를 찾을 수 없습니다.")
+        }
 
         if (!seller.getSellerSubmitStatus().isApproved()) {
             throw new InvalidRequestException("승인된 판매자만 취소/반품/교환 목록을 조회할 수 있습니다.");
@@ -627,8 +640,10 @@ public class SellerService {
     }
 
     public SellerInfoResponse updateSellerInfo(String userEmail, @Valid SellerUpdateRequest req) {
-        var seller = sellerRepository.findByUser_UserEmail(userEmail)
-                .orElseThrow(() -> new DataNotFoundException("판매자 정보가 존재하지 않습니다."));
+        var seller = sellerRepository.findByUserUserEmail(userEmail);
+        if (seller == null) {
+            throw new DataNotFoundException("판매자 정보가 존재하지 않습니다.")
+        }
 
         seller.updateSellerInfo(
                 req.sellerName(),

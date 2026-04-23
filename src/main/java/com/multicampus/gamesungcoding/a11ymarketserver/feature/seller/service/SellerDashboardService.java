@@ -40,8 +40,11 @@ public class SellerDashboardService {
     @Transactional(readOnly = true)
     public SellerDashboardResponse getDashboard(String userEmail) {
 
-        Seller seller = sellerRepository.findByUser_UserEmail(userEmail)
-                .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."));
+        Seller seller = sellerRepository.findByUserUserEmail(userEmail);
+
+        if (seller == null) {
+            throw new DataNotFoundException("판매자 정보를 찾을 수 없습니다.");
+        }
 
         if (!seller.getSellerSubmitStatus().isApproved()) {
             throw new InvalidRequestException("승인된 판매자만 대시보드를 조회할 수 있습니다.");
@@ -49,7 +52,7 @@ public class SellerDashboardService {
 
         var stats = sellerDashboardRepository.findBySellerId(seller.getSellerId());
 
-        if (stats.isEmpty()) {
+        if (stats == null) {
             return new SellerDashboardResponse(
                     seller.getSellerId(),
                     seller.getSellerName(),
@@ -60,15 +63,14 @@ public class SellerDashboardService {
                     null
             );
         } else {
-            var statsData = stats.get();
             return new SellerDashboardResponse(
                     seller.getSellerId(),
                     seller.getSellerName(),
                     seller.getSellerIntro(),
-                    statsData.getTotalRevenue(),
-                    statsData.getTotalOrderCount(),
-                    calculateRefundRate(statsData),
-                    calculateConfirmationRate(statsData)
+                    stats.getTotalRevenue(),
+                    stats.getTotalOrderCount(),
+                    calculateRefundRate(stats),
+                    calculateConfirmationRate(stats)
             );
         }
     }
@@ -95,7 +97,7 @@ public class SellerDashboardService {
 
     public List<SellerTopProductResponse> getTopProducts(String sellerEmail, int limit) {
         return sellerTopProductRepository
-                .findAllById_SellerIdAndSalesRankLessThanEqualOrderBySalesRankAsc(
+                .findAllByIdSellerIdAndSalesRankLessThanEqualOrderBySalesRankAsc(
                         getSellerIdByEmail(sellerEmail),
                         limit
                 )
@@ -135,8 +137,11 @@ public class SellerDashboardService {
     }
 
     private UUID getSellerIdByEmail(String userEmail) {
-        return sellerRepository.findByUser_UserEmail(userEmail)
-                .orElseThrow(() -> new DataNotFoundException("판매자 정보를 찾을 수 없습니다."))
-                .getSellerId();
+        var seller = sellerRepository.findByUserUserEmail(userEmail);
+
+        if (seller == null) {
+            throw new DataNotFoundException("판매자 정보를 찾을 수 없습니다.");
+        }
+        return seller.getSellerId();
     }
 }
