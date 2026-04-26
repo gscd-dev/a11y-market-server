@@ -6,7 +6,6 @@ import com.multicampus.gamesungcoding.a11ymarketserver.common.properties.CorsPro
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ProductDetailResponse;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.ProductStatus;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.controller.SellerController;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.dto.SellerProductRegisterRequest;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.entity.SellerGrades;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.service.SellerDashboardService;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.service.SellerService;

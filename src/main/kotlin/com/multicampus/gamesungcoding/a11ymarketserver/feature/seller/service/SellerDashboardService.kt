@@ -8,6 +8,8 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.dto.Seller
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.dto.SellerOrderItemResponse
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.dto.SellerTopProductResponse
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.entity.SellerDashboardStats
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.mapper.toSellerOrderItemResponse
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.mapper.toTopProductResponse
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.repository.SellerDashboardRepository
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.repository.SellerRepository
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.repository.SellerTopProductRepository
@@ -82,7 +84,7 @@ class SellerDashboardService(
             .findAllByIdSellerIdAndSalesRankLessThanEqualOrderBySalesRankAsc(
                 getSellerIdByEmail(sellerEmail),
                 limit
-            ).map { SellerTopProductResponse.fromEntity(it) }
+            ).map { it.toTopProductResponse() }
     }
 
     private fun calculateRefundRate(stats: SellerDashboardStats): BigDecimal {
@@ -116,7 +118,7 @@ class SellerDashboardService(
         return orderItemsRepository
             .findBySellerIdWithDetails(sellerId, pageable)
             .content
-            .map { SellerOrderItemResponse.fromEntity(it) }
+            .map { it.toSellerOrderItemResponse() }
     }
 
     private fun getSellerIdByEmail(userEmail: String): UUID =

@@ -4,7 +4,6 @@ import com.multicampus.gamesungcoding.a11ymarketserver.common.properties.S3Stora
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.dto.ImageMetadata;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.Categories;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.CategoryRepository;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.dto.SellerProductRegisterRequest;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.entity.Seller;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.repository.SellerRepository;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.service.SellerService;

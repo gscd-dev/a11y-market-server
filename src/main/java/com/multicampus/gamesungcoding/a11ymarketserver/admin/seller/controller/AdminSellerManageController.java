@@ -2,9 +2,6 @@ package com.multicampus.gamesungcoding.a11ymarketserver.admin.seller.controller;
 
 import com.multicampus.gamesungcoding.a11ymarketserver.admin.seller.model.AdminSellerUpdateRequest;
 import com.multicampus.gamesungcoding.a11ymarketserver.admin.seller.service.AdminSellerService;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.dto.SellerApplyResponse;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.dto.SellerDetailResponse;
-import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.dto.SellerProfileResponse;
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.entity.SellerSubmitStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
