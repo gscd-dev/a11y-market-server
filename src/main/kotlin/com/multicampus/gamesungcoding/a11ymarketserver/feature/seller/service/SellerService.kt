@@ -17,6 +17,7 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.Pr
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.ProductAiSummary
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.ProductImages
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.entity.ProductStatus
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.mapper.toDTO
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.mapper.toDetailResponse
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.mapper.toInquireResponse
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.CategoryRepository
@@ -25,6 +26,9 @@ import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repositor
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.product.repository.ProductRepository
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.dto.*
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.entity.Seller
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.mapper.toApplyResponse
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.mapper.toInfoResponse
+import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.mapper.toSellerOrderItemResponse
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.seller.repository.SellerRepository
 import com.multicampus.gamesungcoding.a11ymarketserver.feature.user.repository.UserRepository
 import com.multicampus.gamesungcoding.a11ymarketserver.util.gemini.service.ProductAnalysisService
@@ -77,7 +81,7 @@ class SellerService(
 
         val saved = sellerRepository.save(seller)
 
-        return SellerApplyResponse.fromEntity(saved)
+        return saved.toApplyResponse()
     }
 
     fun registerProduct(
@@ -108,7 +112,7 @@ class SellerService(
 
         product = productRepository.save(product)
 
-        if (images.isEmpty() || request.imageMetadataList.isNullOrEmpty()) {
+        if (images.isEmpty() || request.imageMetadataList.isEmpty()) {
             product.toDetailResponse(null, null);
         }
 
@@ -177,7 +181,7 @@ class SellerService(
         val dbImages = product.productImages
         val requestImages = request.imageMetadataList ?: emptyList()
 
-        val requestImageIds = requestImages.mapNotNull { it.imageId }
+        val requestImageIds = requestImages.map { it.imageId }
         val imagesToDelete = dbImages.filter { it.imageId !in requestImageIds }
 
         imagesToDelete.forEach {
@@ -203,7 +207,7 @@ class SellerService(
             }
         }
 
-        return ProductDTO.fromEntity(productRepository.save(product))
+        return productRepository.save(product).toDTO()
     }
 
     fun deleteProduct(userEmail: String, productId: UUID) {
@@ -260,7 +264,7 @@ class SellerService(
 
         product.updateStockBySeller(request.productStock)
 
-        return ProductDTO.fromEntity(productRepository.save(product))
+        return productRepository.save(product).toDTO()
     }
 
     @Transactional(readOnly = true)
@@ -300,7 +304,7 @@ class SellerService(
         }
 
         return SellerOrderInquireResponse(
-            itemsList.map { SellerOrderItemResponse.fromEntity(it) }.toList(),
+            itemsList.map { it.toSellerOrderItemResponse() }.toList(),
             itemCount
         )
     }
@@ -454,7 +458,7 @@ class SellerService(
             throw InvalidRequestException("요청 상태의 주문만 처리할 수 있습니다.")
         }
 
-        if (request.action.isApproved) {
+        if (request.action.isApproved()) {
             if (currentStatus == OrderItemStatus.CANCEL_PENDING) {
                 tossPaymentService.cancelPayment(
                     orderItem.order.paymentKey,
@@ -500,14 +504,14 @@ class SellerService(
                 claimStatuses
             )
 
-        return claimItems.map { SellerOrderItemResponse.fromEntity(it) }
+        return claimItems.map { it.toSellerOrderItemResponse() }
     }
 
     fun getSellerInfoById(sellerId: UUID): SellerInfoResponse {
         val seller = sellerRepository.findByIdOrNull(sellerId)
             ?: throw DataNotFoundException("판매자 정보를 찾을 수 없습니다.")
 
-        return SellerInfoResponse.fromEntity(seller)
+        return seller.toInfoResponse()
     }
 
     private fun saveImageWithMetadata(
@@ -621,7 +625,7 @@ class SellerService(
             req.sellerIntro
         )
 
-        return SellerInfoResponse.fromEntity(sellerRepository.save(seller))
+        return sellerRepository.save(seller).toInfoResponse()
     }
 
     @Transactional(readOnly = true)
